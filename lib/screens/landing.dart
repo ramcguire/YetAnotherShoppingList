@@ -4,10 +4,11 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:yetanothershoppinglist/widgets/shared.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:yetanothershoppinglist/repositories/repositories.dart';
+import './screens.dart';
 
 class Landing extends StatelessWidget {
   final String name;
-  ShoppingListRepository _shoppingListRepository;
+  final ShoppingListRepository _shoppingListRepository;
 
   Landing({Key key, @required this.name})
       : _shoppingListRepository =
@@ -18,7 +19,8 @@ class Landing extends StatelessWidget {
   Widget build(BuildContext context) {
     return BlocProvider(
         create: (context) =>
-            ShoppingListBloc(listRepository: _shoppingListRepository)..add(LoadLists()),
+            ShoppingListBloc(listRepository: _shoppingListRepository)
+              ..add(LoadLists()),
         child: Scaffold(
             drawer: buildDrawer(context),
             appBar: AppBar(
@@ -44,25 +46,10 @@ class Landing extends StatelessWidget {
                 );
               }
               if (state is ListsLoaded) {
-                return ShowLists(state.lists);
+                return ListOverview(state.lists);
               }
 
               return Container();
             })));
-  }
-}
-
-class ShowLists extends StatelessWidget {
-  final List<ShoppingListEntity> lists;
-
-  ShowLists(this.lists);
-
-  @override
-  Widget build(BuildContext context) {
-    return ListView(
-      children: lists.map((list) {
-        return Text(list.title);
-      }).toList(),
-    );
   }
 }
