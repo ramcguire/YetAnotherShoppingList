@@ -47,27 +47,25 @@ class ShoppingListEntity {
 
 class ShoppingListItem {
   final String title;
-  final String id;
   final String description;
   final bool complete;
 
-  ShoppingListItem(this.title, this.id, this.description, this.complete);
+  ShoppingListItem(this.title, this.description, this.complete);
 
   ShoppingListItem.fromMap(Map<String, dynamic> item)
       : title = item['title'],
-        id = item['id'],
         description = item['id'] ?? '',
         complete = item['complete'];
 
-  ShoppingListItem.createNew(String title, String description, bool complete)
-      : title = title,
-        description = description,
-        complete = complete,
-        id = Uuid().v4().toString();
+//  ShoppingListItem.createNew(String title, String description, bool complete)
+//      : title = title,
+//        description = description,
+//        complete = complete,
+//        id = Uuid().v4().toString();
 
   @override
   int get hashCode =>
-      complete.hashCode ^ title.hashCode ^ id.hashCode ^ description.hashCode;
+      complete.hashCode ^ title.hashCode ^ description.hashCode;
 
   @override
   bool operator ==(Object other) =>
@@ -76,14 +74,12 @@ class ShoppingListItem {
           runtimeType == other.runtimeType &&
           complete == other.complete &&
           title == other.title &&
-          id == other.id &&
           description == other.description;
 
   Map toJson() {
     return {
       'complete': complete,
       'title': title,
-      'id': id ?? Uuid().v4().toString(),
       'description': description,
     };
   }
@@ -91,7 +87,6 @@ class ShoppingListItem {
   static ShoppingListItem fromJson(Map<String, Object> json) {
     return ShoppingListItem(
       json['title'] as String,
-      json['id'] as String,
       json['description'] as String,
       json['complete'] as bool,
     );
