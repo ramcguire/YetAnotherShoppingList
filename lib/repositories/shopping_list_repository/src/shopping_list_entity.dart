@@ -24,15 +24,15 @@ class ShoppingListEntity {
           return ShoppingListItem.fromMap(entries);
         }).toList();
 
-//  ShoppingListEntity.createNew(String title, String owner)
-//    : title = title,
-//      owner = owner,
-//      collection = List<ShoppingListItem>(),
-//      id = Uuid().v4();
+  ShoppingListEntity.createNew(String title, String owner)
+    : title = title,
+      owner = owner,
+      collection = List<ShoppingListItem>.generate(1, (int idx) => ShoppingListItem.createNew()),
+      id = null;
 
   Map toJson() => {
         'title': title,
-        'id': id,
+        'owner': owner,
         'items': jsonEncode(collection),
       };
 
@@ -57,11 +57,10 @@ class ShoppingListItem {
         description = item['id'] ?? '',
         complete = item['complete'];
 
-//  ShoppingListItem.createNew(String title, String description, bool complete)
-//      : title = title,
-//        description = description,
-//        complete = complete,
-//        id = Uuid().v4().toString();
+  ShoppingListItem.createNew()
+      : title = '',
+        description = '',
+        complete = false;
 
   @override
   int get hashCode =>
