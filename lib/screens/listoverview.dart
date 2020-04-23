@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:yetanothershoppinglist/blocs/blocs.dart';
 import 'package:yetanothershoppinglist/repositories/repositories.dart';
 import 'package:flutter_swiper/flutter_swiper.dart';
+import 'package:yetanothershoppinglist/screens/screens.dart';
 
 final double _cardElevation = 10.0; // for ease of "tweaking", remove later
 
@@ -18,6 +21,12 @@ class ListOverview extends StatelessWidget {
     });
     return Material(
       child: InkWell(
+        onTap: () {
+          print('picked list with id ${list.id}');
+          Navigator.push(context, MaterialPageRoute(builder: (context) {
+            return ListViewer(list.id);
+          }));
+        },
         child: Card(
           elevation: _cardElevation,
           child: Column(
@@ -36,6 +45,7 @@ class ListOverview extends StatelessWidget {
 
     listPreview.add(CreateList());
     return Swiper(
+      control: SwiperControl(),
       itemBuilder: (BuildContext context, int idx) {
         return listPreview[idx];
       },
@@ -57,16 +67,18 @@ class _CreateListState extends State<CreateList> {
   final SnackBar snackBar = SnackBar(content: Text('Creating a new list...'));
   final _formKey = GlobalKey<FormState>();
 
-  void submitForm() async {
+  void submitForm() {
     var form = _formKey.currentState;
     if (form.validate()) {
       FocusScope.of(context).unfocus();
       form.save();
+      BlocProvider.of<ShoppingListBloc>(context).add(CreateNewList(listTitle));
       print('saved list title of $listTitle');
     }
   }
 
-  Widget _newListForm() {
+  Widget _newListForm(BuildContext context) {
+    ShoppingListBloc bloc = BlocProvider.of<ShoppingListBloc>(context);
     return Card(
         elevation: _cardElevation,
         child: Padding(
@@ -129,6 +141,6 @@ class _CreateListState extends State<CreateList> {
 
   @override
   Widget build(BuildContext context) {
-    return _newListForm();
+    return _newListForm(context);
   }
 }

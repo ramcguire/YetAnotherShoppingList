@@ -7,37 +7,33 @@ import 'package:yetanothershoppinglist/repositories/repositories.dart';
 import './screens.dart';
 
 class Landing extends StatelessWidget {
-  final String name;
-  final ShoppingListRepository _shoppingListRepository;
+  final String user;
 
-  Landing({Key key, @required this.name})
-      : _shoppingListRepository =
-            ShoppingListRepository(Firestore.instance, name),
-        super(key: key);
+
+  Landing({Key key, @required this.user})
+      : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-        create: (context) =>
-            ShoppingListBloc(listRepository: _shoppingListRepository)
-              ..add(LoadLists()),
-        child: Scaffold(
-            drawer: buildDrawer(context),
-            appBar: AppBar(
-              title: Text('Home'),
-              actions: <Widget>[
-                IconButton(
-                  icon: Icon(Icons.exit_to_app),
-                  onPressed: () {
-                    BlocProvider.of<AuthenticationBloc>(context).add(
-                      LoggedOut(),
-                    );
-                  },
-                )
-              ],
-            ),
-            body: BlocBuilder<ShoppingListBloc, ShoppingListState>(
-                builder: (context, state) {
+    BlocProvider.of<ShoppingListBloc>(context).setUser(user);
+    BlocProvider.of<ShoppingListBloc>(context).add(LoadLists());
+    return Scaffold(
+        drawer: buildDrawer(context),
+        appBar: AppBar(
+          title: Text('Home'),
+          actions: <Widget>[
+            IconButton(
+              icon: Icon(Icons.exit_to_app),
+              onPressed: () {
+                BlocProvider.of<AuthenticationBloc>(context).add(
+                  LoggedOut(),
+                );
+              },
+            )
+          ],
+        ),
+        body: BlocBuilder<ShoppingListBloc, ShoppingListState>(
+            builder: (context, state) {
               if (state is ListsLoading) {
                 return Container(
                   child: Center(
@@ -50,6 +46,6 @@ class Landing extends StatelessWidget {
               }
 
               return Container();
-            })));
+            }));
   }
 }

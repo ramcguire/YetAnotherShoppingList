@@ -7,6 +7,7 @@ import '../bloc.dart';
 class ShoppingListBloc extends Bloc<ShoppingListEvent, ShoppingListState> {
   final ShoppingListRepository _listRepository;
   StreamSubscription _listSubscription;
+  String _user;
 
   ShoppingListBloc({@required ShoppingListRepository listRepository})
       : assert(listRepository != null),
@@ -27,12 +28,18 @@ class ShoppingListBloc extends Bloc<ShoppingListEvent, ShoppingListState> {
       yield* _mapDeleteListToState(event);
     } else if (event is ListsUpdated) {
       yield* _mapListsUpdatedToState(event);
+    } else if (event is CreateNewList) {
+      yield* _mapCreateNewListToState(event);
     }
+  }
+
+  void setUser(String user) {
+    this._user = user;
   }
 
   Stream<ShoppingListState> _mapLoadListsToState() async* {
     _listSubscription?.cancel();
-    _listSubscription = _listRepository.shoppingLists().listen(
+    _listSubscription = _listRepository.shoppingLists(_user).listen(
           (lists) => add(ListsUpdated(lists)),
         );
   }
@@ -41,8 +48,17 @@ class ShoppingListBloc extends Bloc<ShoppingListEvent, ShoppingListState> {
     // need to implement this in ShoppingListEntity and ShoppingListRepository
   }
 
+  Stream<ShoppingListState> _mapCreateNewListToState(
+      CreateNewList event) async* {
+    // need to implement this in ShoppingListEntity and ShoppingListRepository
+    String newListId =
+        await _listRepository.createNewShoppingList(event.newListTitle, _user);
+    //yield ListsLoaded
+  }
+
   Stream<ShoppingListState> _mapUpdateListToState(UpdateList event) async* {
-    _listRepository.updateShoppingList(event.updatedList);
+    await _listRepository.updateShoppingList(
+        event.updatedList, event.updatedField);
   }
 
   Stream<ShoppingListState> _mapDeleteListToState(DeleteList event) async* {

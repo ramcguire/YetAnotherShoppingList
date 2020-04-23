@@ -20,7 +20,32 @@ class ListsLoaded extends ShoppingListState {
   List<Object> get props => [lists];
 
   @override
-  String toString() => 'ListsLoaded {lists: $lists }';
+  String toString() => 'ListsLoaded { lists: $lists }';
+}
+
+class NewList extends ShoppingListState {
+  final ShoppingListEntity newList;
+
+  const NewList(this.newList);
+
+  @override
+  List<Object> get props => [newList];
+
+  @override
+  String toString() => 'NewList { newList: $newList }';
+}
+
+class ViewingList extends ShoppingListState {
+  final String listId;
+  final List<ShoppingListEntity> lists;
+
+  const ViewingList(this.listId, this.lists);
+
+  @override
+  List<Object> get props => [listId, lists];
+
+  @override
+  String toString() => 'ViewingList { listId: $listId }';
 }
 
 class ListsNotLoaded extends ShoppingListState {}

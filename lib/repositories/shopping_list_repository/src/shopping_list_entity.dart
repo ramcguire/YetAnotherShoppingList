@@ -33,22 +33,26 @@ class ShoppingListEntity {
   Map toJson() => {
         'title': title,
         'owner': owner,
-        'items': jsonEncode(collection),
+        'data': FieldValue.arrayUnion(collection.map((item) {
+          return item.toJson();
+        }).toList()),
       };
 
-  Map<String, Object> toDocument() {
+  Map<String, dynamic> toDocument() {
     return {
       'title': title,
       'owner': owner,
-      'collection': jsonEncode(collection),
+      'data': FieldValue.arrayUnion(collection.map((item) {
+        return item.toJson();
+      }).toList()),
     };
   }
 }
 
 class ShoppingListItem {
-  final String title;
-  final String description;
-  final bool complete;
+  String title;
+  String description;
+  bool complete;
 
   ShoppingListItem(this.title, this.description, this.complete);
 
@@ -75,7 +79,7 @@ class ShoppingListItem {
           title == other.title &&
           description == other.description;
 
-  Map toJson() {
+  Map<String, dynamic> toJson() {
     return {
       'complete': complete,
       'title': title,

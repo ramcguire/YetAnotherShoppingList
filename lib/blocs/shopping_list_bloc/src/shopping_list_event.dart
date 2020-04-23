@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:flutter/material.dart';
 import 'package:yetanothershoppinglist/repositories/repositories.dart';
 
 abstract class ShoppingListEvent extends Equatable {
@@ -22,16 +23,43 @@ class AddList extends ShoppingListEvent {
   String toString() => 'AddList { list: $list }';
 }
 
+class CreateNewList extends ShoppingListEvent {
+  final String newListTitle;
+
+  const CreateNewList(this.newListTitle);
+
+  @override
+  List<Object> get props => [newListTitle];
+
+  @override
+  String toString() => 'CreateNewList { newListTitle: $newListTitle }';
+}
+
+class ViewList extends ShoppingListEvent {
+  final List<ShoppingListEntity> lists;
+  final String listId;
+
+  const ViewList(this.lists, this.listId);
+
+  @override
+  List<Object> get props => [lists, listId];
+
+  @override
+  String toString() => 'CreateNewList { listId: $listId }';
+}
+
 class UpdateList extends ShoppingListEvent {
   final ShoppingListEntity updatedList;
+  final String updatedField;
 
-  const UpdateList(this.updatedList);
-
-  @override
-  List<Object> get props => [updatedList];
+  const UpdateList(this.updatedList, this.updatedField);
 
   @override
-  String toString() => 'UpdateList { updatedList: $updatedList }';
+  List<Object> get props => [updatedList, updatedList];
+
+  @override
+  String toString() =>
+      'UpdateList { updatedList: $updatedList, updatedField : $updatedField }';
 }
 
 class DeleteList extends ShoppingListEvent {

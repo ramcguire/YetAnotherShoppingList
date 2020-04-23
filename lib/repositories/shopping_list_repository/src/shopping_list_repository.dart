@@ -4,14 +4,13 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 class ShoppingListRepository {
   final Firestore _firestore;
-  final String _user;
 
-  const ShoppingListRepository(this._firestore, this._user);
+  const ShoppingListRepository(this._firestore);
 
-  Stream<List<ShoppingListEntity>> shoppingLists() {
+  Stream<List<ShoppingListEntity>> shoppingLists(String user) {
     return _firestore
         .collectionGroup('lists')
-        .where('owner', isEqualTo: _user)
+        .where('owner', isEqualTo: user)
         .snapshots()
         .map((snapshot) {
       return snapshot.documents.map((snapshot) {
@@ -20,10 +19,12 @@ class ShoppingListRepository {
     });
   }
 
-  Future<void> createNewShoppingList(String listTitle) async {
+  Future<String> createNewShoppingList(String listTitle, String user) async {
     DocumentReference newList = await _firestore
         .collection('lists')
-        .add(ShoppingListEntity.createNew(listTitle, _user).toDocument());
+        .add(ShoppingListEntity.createNew(listTitle, user).toDocument());
+    print('created a new Document with ID: ${newList.documentID}');
+    return newList.documentID;
   }
 
   Future<String> removeShoppingList(ShoppingListEntity list) async {
@@ -31,7 +32,9 @@ class ShoppingListRepository {
     return list.id;
   }
 
-  Future<void> updateShoppingList(ShoppingListEntity list) async {
-    await list.reference.updateData(list.toJson());
+  Future<void> updateShoppingList(ShoppingListEntity list, String field) async {
+    print('updateing $field field');
+    await list.reference.setData(list.toDocument());
+    //await list.reference.updateData(list.toJson());
   }
 }
