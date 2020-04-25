@@ -1,32 +1,74 @@
-import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:yetanothershoppinglist/blocs/blocs.dart';
 import 'package:yetanothershoppinglist/repositories/repositories.dart';
+import 'package:yetanothershoppinglist/widgets/share.dart';
 
-class ListViewer extends StatelessWidget {
+class ListViewer extends StatefulWidget {
   final String listId;
-  final TextStyle completedItem =
-  TextStyle(decoration: TextDecoration.lineThrough);
 
   ListViewer(this.listId);
 
+  @override
+  _ListViewerState createState() => _ListViewerState(listId);
+}
+
+class _ListViewerState extends State<ListViewer> {
+  final String listId;
+  final TextStyle completedItem =
+      TextStyle(decoration: TextDecoration.lineThrough);
+  int _selectedIndex = 0;
+  final PageController pageController = PageController(
+    initialPage: 0,
+    keepPage: true,
+  );
+
+  _ListViewerState(this.listId);
+
+  void onTabSelected(int idx) {
+    setState(() {
+      _selectedIndex = idx;
+      pageController.animateToPage(idx,
+          duration: Duration(milliseconds: 500),
+          curve: Curves.fastLinearToSlowEaseIn);
+    });
+  }
+
   Widget mainBody(BuildContext context, ShoppingListEntity selectedList) {
+    List<Widget> tabs = List<Widget>();
+    tabs.add(ListView(
+      children: tileList(context, selectedList),
+    ));
+    tabs.add(ShareScreen(selectedList));
     return Scaffold(
         appBar: AppBar(
           title: Text(selectedList.title),
         ),
+        bottomNavigationBar: BottomNavigationBar(
+          items: const <BottomNavigationBarItem>[
+            BottomNavigationBarItem(
+              icon: Icon(Icons.home),
+              title: Text('Home'),
+            ),
+            BottomNavigationBarItem(
+              icon: Icon(Icons.share),
+              title: Text('Share'),
+            ),
+          ],
+          currentIndex: _selectedIndex,
+          selectedItemColor: Colors.blueAccent,
+          onTap: onTabSelected,
+        ),
         body: Material(
-//          child: Column(
-//            children: tileList(context, selectedList),
-//          ),
-            child: ListView(
-              children: tileList(context, selectedList),
-            )));
+            child: PageView(
+          onPageChanged: onTabSelected,
+          controller: pageController,
+          children: tabs,
+        )));
   }
 
-  void updateCheckbox(BuildContext context, ShoppingListEntity list,
-      ShoppingListItem item) {
+  void updateCheckbox(
+      BuildContext context, ShoppingListEntity list, ShoppingListItem item) {
     item.complete = !item.complete;
     BlocProvider.of<ShoppingListBloc>(context).add(UpdateList(list, "data"));
   }
@@ -37,18 +79,25 @@ class ListViewer extends StatelessWidget {
     }).toList();
   }
 
-  Widget checkboxTile(BuildContext context, ShoppingListItem item,
-      ShoppingListEntity list) {
+  Widget checkboxTile(
+      BuildContext context, ShoppingListItem item, ShoppingListEntity list) {
     return InkWell(
       child: CheckboxListTile(
-        title: Text(item.title),
+        title: Text(
+          item.title,
+          style: item.complete ? completedItem : TextStyle(),
+        ),
         value: item.complete,
-        subtitle: Text(item.description),
+        subtitle: Text(
+          item.description,
+          style: item.complete ? completedItem : TextStyle(),
+        ),
         controlAffinity: ListTileControlAffinity.leading,
         onChanged: (value) {
           item.complete = !item.complete;
           BlocProvider.of<ShoppingListBloc>(context)
               .add(UpdateList(list, "data"));
+          setState(() {});
         },
       ),
     );
@@ -79,6 +128,51 @@ class ListViewer extends StatelessWidget {
     );
   }
 
+  Widget normalTile(
+      BuildContext context, ShoppingListItem item, ShoppingListEntity entity) {
+    return ListTile(
+      leading: Checkbox(
+        value: item.complete,
+        onChanged: (value) {
+          item.complete = !item.complete;
+          BlocProvider.of<ShoppingListBloc>(context)
+              .add(UpdateList(entity, "data"));
+        },
+      ),
+      title:
+          Text(item.title, style: item.complete ? completedItem : TextStyle()),
+      //subtitle: Text(item.description),
+      onTap: () {
+        item.complete = !item.complete;
+        BlocProvider.of<ShoppingListBloc>(context)
+            .add(UpdateList(entity, "data"));
+      },
+    );
+  }
+
+  Widget editTile(
+      BuildContext context, ShoppingListItem item, ShoppingListEntity entity) {
+    return ListTile(
+      leading: Checkbox(
+        value: item.complete,
+        onChanged: (value) {
+          item.complete = !item.complete;
+          BlocProvider.of<ShoppingListBloc>(context)
+              .add(UpdateList(entity, "data"));
+        },
+      ),
+      title:
+          Text(item.title, style: item.complete ? completedItem : TextStyle()),
+      subtitle: Text(item.description),
+      trailing: Icon(Icons.edit),
+      onTap: () {
+        item.complete = !item.complete;
+        BlocProvider.of<ShoppingListBloc>(context)
+            .add(UpdateList(entity, "data"));
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     //return mainBody(context);
@@ -86,7 +180,7 @@ class ListViewer extends StatelessWidget {
       builder: (context, state) {
         if (state is ListsLoaded) {
           ShoppingListEntity selectedList =
-          state.lists.firstWhere((list) => list.id == this.listId);
+              state.lists.firstWhere((list) => list.id == this.widget.listId);
           return mainBody(context, selectedList);
         }
 
@@ -100,7 +194,6 @@ class EditableTile extends StatefulWidget {
   final ShoppingListEntity list;
   final ShoppingListItem item;
 
-
   EditableTile(this.list, this.item);
 
   @override
@@ -109,13 +202,12 @@ class EditableTile extends StatefulWidget {
 
 class _EditableTileState extends State<EditableTile> {
   final TextStyle completedItem =
-  TextStyle(decoration: TextDecoration.lineThrough);
+      TextStyle(decoration: TextDecoration.lineThrough);
   final ShoppingListEntity list;
   final ShoppingListItem item;
   final _formKey = GlobalKey<FormState>();
   bool isEditing = false;
   final double itemSize = 70;
-
 
   _EditableTileState(this.list, this.item);
 
@@ -126,10 +218,9 @@ class _EditableTileState extends State<EditableTile> {
         height: itemSize,
         child: ListTile(
             leading: IconButton(
-              icon: Icon(Icons.add),
-              //onPressed:,
-            )
-        ),
+          icon: Icon(Icons.add),
+          //onPressed:,
+        )),
       );
     }
     return SizedBox(
@@ -143,7 +234,8 @@ class _EditableTileState extends State<EditableTile> {
                 .add(UpdateList(list, "data"));
           },
         ),
-        title: Text(item.title),
+        title: Text(item.title,
+            style: item.complete ? completedItem : TextStyle()),
         //subtitle: Text(item.description),
         onTap: () {
           setState(() {
@@ -175,9 +267,6 @@ class _EditableTileState extends State<EditableTile> {
           key: _formKey,
           child: TextFormField(
             initialValue: item.title,
-//            decoration: InputDecoration(
-//              labelText: 'Entry name',
-//            ),
             onSaved: (value) {
               setState(() {
                 item.title = value;
@@ -185,7 +274,7 @@ class _EditableTileState extends State<EditableTile> {
             },
             validator: (value) {
               if (value.isEmpty) {
-                return 'Entry must cannot be empty.';
+                return 'Entry cannot be empty.';
               }
               return null;
             },
@@ -205,57 +294,57 @@ class _EditableTileState extends State<EditableTile> {
   Widget editingTile() {
     return Card(
         child: Padding(
-          padding: EdgeInsets.all(10),
-          child: Form(
-            key: _formKey,
-            child: Column(
+      padding: EdgeInsets.all(10),
+      child: Form(
+        key: _formKey,
+        child: Column(
+          children: <Widget>[
+            TextFormField(
+              initialValue: item.title,
+              decoration: InputDecoration(
+                labelText: 'Entry name',
+              ),
+              onSaved: (value) {
+                setState(() {
+                  item.title = value;
+                });
+              },
+              validator: (value) {
+                if (value.isEmpty) {
+                  return 'Entry must cannot be empty.';
+                }
+                return null;
+              },
+            ),
+            TextFormField(
+                initialValue: item.description,
+                decoration: InputDecoration(labelText: 'Description'),
+                onSaved: (value) {
+                  setState(() {
+                    item.description = value != null ? value : '';
+                  });
+                }),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               children: <Widget>[
-                TextFormField(
-                  initialValue: item.title,
-                  decoration: InputDecoration(
-                    labelText: 'Entry name',
-                  ),
-                  onSaved: (value) {
+                RaisedButton(
+                  onPressed: () => submitForm(),
+                  child: Text('Save'),
+                ),
+                RaisedButton(
+                  onPressed: () {
                     setState(() {
-                      item.title = value;
+                      isEditing = false;
                     });
                   },
-                  validator: (value) {
-                    if (value.isEmpty) {
-                      return 'Entry must cannot be empty.';
-                    }
-                    return null;
-                  },
+                  child: Text('Cancel'),
                 ),
-                TextFormField(
-                    initialValue: item.description,
-                    decoration: InputDecoration(labelText: 'Description'),
-                    onSaved: (value) {
-                      setState(() {
-                        item.description = value != null ? value : '';
-                      });
-                    }),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                  children: <Widget>[
-                    RaisedButton(
-                      onPressed: () => submitForm(),
-                      child: Text('Save'),
-                    ),
-                    RaisedButton(
-                      onPressed: () {
-                        setState(() {
-                          isEditing = false;
-                        });
-                      },
-                      child: Text('Cancel'),
-                    ),
-                  ],
-                )
               ],
-            ),
-          ),
-        ));
+            )
+          ],
+        ),
+      ),
+    ));
   }
 
   @override

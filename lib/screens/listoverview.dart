@@ -4,6 +4,7 @@ import 'package:yetanothershoppinglist/blocs/blocs.dart';
 import 'package:yetanothershoppinglist/repositories/repositories.dart';
 import 'package:flutter_swiper/flutter_swiper.dart';
 import 'package:yetanothershoppinglist/screens/screens.dart';
+import 'package:yetanothershoppinglist/widgets/drawer.dart';
 
 final double _cardElevation = 10.0; // for ease of "tweaking", remove later
 
@@ -20,6 +21,7 @@ class ListOverview extends StatelessWidget {
       overview.add(Text(item.title));
     });
     return Material(
+      key: ValueKey(list.id),
       child: InkWell(
         onTap: () {
           print('picked list with id ${list.id}');
@@ -44,15 +46,30 @@ class ListOverview extends StatelessWidget {
     }));
 
     listPreview.add(CreateList());
-    return Swiper(
-      control: SwiperControl(),
-      itemBuilder: (BuildContext context, int idx) {
-        return listPreview[idx];
-      },
-      itemCount: listPreview.length,
-      viewportFraction: 0.8,
-      scale: 0.8,
-    );
+    return Scaffold(
+        drawer: buildDrawer(context),
+        appBar: AppBar(
+          title: Text('Home'),
+          actions: <Widget>[
+            IconButton(
+              icon: Icon(Icons.exit_to_app),
+              onPressed: () {
+                BlocProvider.of<AuthenticationBloc>(context).add(
+                  LoggedOut(),
+                );
+              },
+            )
+          ],
+        ),
+        body: Swiper(
+          control: SwiperControl(),
+          itemBuilder: (BuildContext context, int idx) {
+            return listPreview[idx];
+          },
+          itemCount: listPreview.length,
+          viewportFraction: 0.8,
+          scale: 0.8,
+        ));
   }
 }
 

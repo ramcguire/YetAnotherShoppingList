@@ -10,7 +10,7 @@ class ShoppingListRepository {
   Stream<List<ShoppingListEntity>> shoppingLists(String user) {
     return _firestore
         .collectionGroup('lists')
-        .where('owner', isEqualTo: user)
+        .where('authorized', arrayContains: user)
         .snapshots()
         .map((snapshot) {
       return snapshot.documents.map((snapshot) {

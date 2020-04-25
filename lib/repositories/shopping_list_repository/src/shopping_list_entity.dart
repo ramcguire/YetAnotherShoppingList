@@ -1,17 +1,16 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'dart:convert';
-import 'package:uuid/uuid.dart';
-
 
 class ShoppingListEntity {
   final String title;
   final String owner;
   final String id;
   final List<ShoppingListItem> collection;
+  final List<String> authorized;
+  final DateTime creationDate;
   DocumentReference reference;
 
-  ShoppingListEntity(
-      this.title, this.id, this.owner, this.collection, this.reference);
+  ShoppingListEntity(this.title, this.id, this.owner, this.collection,
+      this.reference, this.authorized, this.creationDate);
 
   // construct a shopping list from DocumentSnapshot
   ShoppingListEntity.fromSnapshot(DocumentSnapshot snapshot)
@@ -19,16 +18,23 @@ class ShoppingListEntity {
         id = snapshot.documentID,
         owner = snapshot.data['owner'],
         reference = snapshot.reference,
+        creationDate = snapshot.data['created_at'].toDate(),
         collection = snapshot.data['data'].map<ShoppingListItem>((entries) {
           print('in shoppinglist contructor for title ${snapshot['title']}');
           return ShoppingListItem.fromMap(entries);
+        }).toList(),
+        authorized = snapshot.data['authorized'].map<String>((user) {
+          return user.toString();
         }).toList();
 
   ShoppingListEntity.createNew(String title, String owner)
-    : title = title,
-      owner = owner,
-      collection = List<ShoppingListItem>.generate(1, (int idx) => ShoppingListItem.createNew()),
-      id = null;
+      : title = title,
+        owner = owner,
+        collection = List<ShoppingListItem>.generate(
+            1, (int idx) => ShoppingListItem.createNew()),
+        authorized = List<String>.generate(1, (int idx) => owner),
+        creationDate = DateTime.now(),
+        id = null;
 
   Map toJson() => {
         'title': title,
@@ -36,6 +42,8 @@ class ShoppingListEntity {
         'data': FieldValue.arrayUnion(collection.map((item) {
           return item.toJson();
         }).toList()),
+        'authorized': FieldValue.arrayUnion(authorized),
+        'created_at': creationDate.millisecondsSinceEpoch,
       };
 
   Map<String, dynamic> toDocument() {
@@ -45,6 +53,8 @@ class ShoppingListEntity {
       'data': FieldValue.arrayUnion(collection.map((item) {
         return item.toJson();
       }).toList()),
+      'authorized' : FieldValue.arrayUnion(authorized),
+      'created_at': Timestamp.fromDate(creationDate),
     };
   }
 }
@@ -67,8 +77,7 @@ class ShoppingListItem {
         complete = false;
 
   @override
-  int get hashCode =>
-      complete.hashCode ^ title.hashCode ^ description.hashCode;
+  int get hashCode => complete.hashCode ^ title.hashCode ^ description.hashCode;
 
   @override
   bool operator ==(Object other) =>

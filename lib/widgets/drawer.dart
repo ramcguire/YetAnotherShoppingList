@@ -19,9 +19,11 @@ Widget buildDrawer(BuildContext context) {
                     ),
                   );
                 }
-                return UserAccountsDrawerHeader(
-                  accountName: Text('placeholder name'),
-                  accountEmail: Text('placeholder email'),
+                return DrawerHeader(
+                  child: Text('Login to continue'),
+                  decoration: BoxDecoration(
+                    color: Colors.redAccent,
+                  ),
                 );
               }),
           ListTile(

@@ -9,6 +9,8 @@ class ShoppingListBloc extends Bloc<ShoppingListEvent, ShoppingListState> {
   StreamSubscription _listSubscription;
   String _user;
 
+  String getUser() => _user;
+
   ShoppingListBloc({@required ShoppingListRepository listRepository})
       : assert(listRepository != null),
         _listRepository = listRepository;

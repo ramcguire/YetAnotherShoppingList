@@ -1,5 +1,4 @@
 import 'package:equatable/equatable.dart';
-import 'package:flutter/material.dart';
 import 'package:yetanothershoppinglist/repositories/repositories.dart';
 
 abstract class ShoppingListEvent extends Equatable {
