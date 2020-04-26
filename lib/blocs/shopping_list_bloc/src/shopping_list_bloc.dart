@@ -11,6 +11,8 @@ class ShoppingListBloc extends Bloc<ShoppingListEvent, ShoppingListState> {
 
   String getUser() => _user;
 
+  ShoppingListRepository getRepository() => _listRepository;
+
   ShoppingListBloc({@required ShoppingListRepository listRepository})
       : assert(listRepository != null),
         _listRepository = listRepository;
@@ -55,7 +57,6 @@ class ShoppingListBloc extends Bloc<ShoppingListEvent, ShoppingListState> {
     // need to implement this in ShoppingListEntity and ShoppingListRepository
     String newListId =
         await _listRepository.createNewShoppingList(event.newListTitle, _user);
-    //yield ListsLoaded
   }
 
   Stream<ShoppingListState> _mapUpdateListToState(UpdateList event) async* {
@@ -65,6 +66,7 @@ class ShoppingListBloc extends Bloc<ShoppingListEvent, ShoppingListState> {
 
   Stream<ShoppingListState> _mapDeleteListToState(DeleteList event) async* {
     _listRepository.removeShoppingList(event.list);
+    yield ListsLoaded(event.lists);
   }
 
   Stream<ShoppingListState> _mapListsUpdatedToState(ListsUpdated event) async* {

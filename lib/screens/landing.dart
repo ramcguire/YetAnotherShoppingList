@@ -23,7 +23,7 @@ class Landing extends StatelessWidget {
         );
       }
       if (state is ListsLoaded) {
-        return ListOverview(state.lists);
+        return ListOverview();
       }
 
       return Center(

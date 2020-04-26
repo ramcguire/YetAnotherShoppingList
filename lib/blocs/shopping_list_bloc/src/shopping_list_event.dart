@@ -63,8 +63,9 @@ class UpdateList extends ShoppingListEvent {
 
 class DeleteList extends ShoppingListEvent {
   final ShoppingListEntity list;
+  final List<ShoppingListEntity> lists;
 
-  const DeleteList(this.list);
+  const DeleteList(this.list, this.lists);
 
   @override
   List<Object> get props => [list];

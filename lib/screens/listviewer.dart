@@ -2,7 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:yetanothershoppinglist/blocs/blocs.dart';
 import 'package:yetanothershoppinglist/repositories/repositories.dart';
+import 'package:yetanothershoppinglist/screens/add_edit.dart';
 import 'package:yetanothershoppinglist/widgets/share.dart';
+import 'package:flutter_slidable/flutter_slidable.dart';
+import 'package:email_validator/email_validator.dart';
 
 class ListViewer extends StatefulWidget {
   final String listId;
@@ -14,10 +17,13 @@ class ListViewer extends StatefulWidget {
 }
 
 class _ListViewerState extends State<ListViewer> {
+  final _userForm = GlobalKey<FormState>();
+  final _titleForm = GlobalKey<FormState>();
   final String listId;
   final TextStyle completedItem =
       TextStyle(decoration: TextDecoration.lineThrough);
   int _selectedIndex = 0;
+  bool isEditing = false;
   final PageController pageController = PageController(
     initialPage: 0,
     keepPage: true,
@@ -34,17 +40,136 @@ class _ListViewerState extends State<ListViewer> {
     });
   }
 
+  Widget editTitleDialog(
+      BuildContext context, ShoppingListEntity selectedList) {
+    return AlertDialog(
+      title: Text('Edit title'),
+      content: Form(
+        key: _titleForm,
+        child: TextFormField(
+          autofocus: true,
+          initialValue: selectedList.title,
+          onSaved: (value) {
+            BlocProvider.of<ShoppingListBloc>(context)
+                .add(UpdateList(selectedList.copyWith(value), "data"));
+          },
+          validator: (value) {
+            if (value.isEmpty) {
+              return 'Title cannot be empty';
+            }
+            if (value == selectedList.title) {
+              return 'New title must be different';
+            }
+            return null;
+          },
+        ),
+      ),
+      actions: <Widget>[
+        FlatButton(
+          onPressed: () {
+            if (_titleForm.currentState.validate()) {
+              _titleForm.currentState.save();
+              Navigator.of(context).pop();
+            }
+          },
+          child: Text('Save title'),
+        ),
+        FlatButton(
+          child: Text('Cancel'),
+          onPressed: () {
+            Navigator.of(context).pop();
+          },
+        ),
+      ],
+    );
+  }
+
+  Widget addUserDialog(BuildContext context, ShoppingListEntity selectedList) {
+    return AlertDialog(
+        title: Text('Add a user'),
+        actions: <Widget>[
+          FlatButton(
+            onPressed: () {
+              if (_userForm.currentState.validate()) {
+                _userForm.currentState.save();
+                Navigator.of(context).pop();
+              }
+            },
+            child: Text('Add User'),
+          ),
+          FlatButton(
+            child: Text('Cancel'),
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+          ),
+        ],
+        content: Form(
+          key: _userForm,
+          child: TextFormField(
+            autofocus: true,
+            onSaved: (value) {
+              selectedList.authorized.add(value);
+              BlocProvider.of<ShoppingListBloc>(context)
+                  .add(UpdateList(selectedList, "data"));
+            },
+            validator: (value) {
+              if (value.isEmpty) {
+                return 'Email cannot be blank';
+              }
+              if (!EmailValidator.validate(value)) {
+                return 'Enter a valid email address';
+              }
+              if (selectedList.authorized.contains(value)) {
+                return 'User already has access';
+              }
+              return null;
+            },
+          ),
+        ));
+  }
+
   Widget mainBody(BuildContext context, ShoppingListEntity selectedList) {
     List<Widget> tabs = List<Widget>();
-    tabs.add(ListView(
-      children: tileList(context, selectedList),
-    ));
-    tabs.add(ShareScreen(selectedList));
+    tabs.add(tileList(context, selectedList));
+    tabs.add(
+        ShareScreen(selectedList.id, addUserDialog(context, selectedList)));
     return Scaffold(
+        floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+        floatingActionButton: FloatingActionButton(
+          child: Icon(
+            Icons.add,
+          ),
+          onPressed: () {
+            if (_selectedIndex == 0) {
+              Navigator.push(context, MaterialPageRoute(builder: (context) {
+                return AddEditScreen.add(selectedList);
+              }));
+            } else {
+              showDialog(
+                  context: context,
+                  barrierDismissible: false,
+                  child: addUserDialog(context, selectedList));
+            }
+          },
+        ),
         appBar: AppBar(
           title: Text(selectedList.title),
+          actions: <Widget>[
+            IconButton(
+              icon: Icon(Icons.title),
+              tooltip: 'Edit list title',
+              onPressed: () {
+                showDialog(
+                    context: context,
+                    barrierDismissible: false,
+                    child: editTitleDialog(context, selectedList));
+              },
+            )
+          ],
         ),
         bottomNavigationBar: BottomNavigationBar(
+          backgroundColor: Colors.lightGreenAccent,
           items: const <BottomNavigationBarItem>[
             BottomNavigationBarItem(
               icon: Icon(Icons.home),
@@ -73,109 +198,84 @@ class _ListViewerState extends State<ListViewer> {
     BlocProvider.of<ShoppingListBloc>(context).add(UpdateList(list, "data"));
   }
 
-  List<Widget> tileList(BuildContext context, ShoppingListEntity selectedList) {
-    return selectedList.collection.map((item) {
-      return EditableTile(selectedList, item);
-    }).toList();
-  }
-
-  Widget checkboxTile(
-      BuildContext context, ShoppingListItem item, ShoppingListEntity list) {
-    return InkWell(
-      child: CheckboxListTile(
-        title: Text(
-          item.title,
-          style: item.complete ? completedItem : TextStyle(),
-        ),
-        value: item.complete,
-        subtitle: Text(
-          item.description,
-          style: item.complete ? completedItem : TextStyle(),
-        ),
-        controlAffinity: ListTileControlAffinity.leading,
-        onChanged: (value) {
-          item.complete = !item.complete;
-          BlocProvider.of<ShoppingListBloc>(context)
-              .add(UpdateList(list, "data"));
-          setState(() {});
-        },
-      ),
-    );
-  }
-
-  DataTable dataTable(BuildContext context, ShoppingListEntity selectedList) {
-    return DataTable(
-      columns: [
-        DataColumn(label: Text('c')),
-        DataColumn(label: Text('entry')),
-      ],
-      rows: selectedList.collection.map((item) {
-        return DataRow(cells: [
-          DataCell(Checkbox(
-            value: item.complete,
-            onChanged: (value) {
-              item.complete = !item.complete;
-              BlocProvider.of<ShoppingListBloc>(context)
-                  .add(UpdateList(selectedList, "data"));
-            },
-          )),
-          DataCell(Text(
-            item.title,
-            style: item.complete ? completedItem : TextStyle(),
-          )),
-        ]);
+  Widget tileList(BuildContext context, ShoppingListEntity selectedList) {
+    return ReorderableListView(
+      onReorder: (oldIndex, newIndex) {
+        if (newIndex > oldIndex) {
+          newIndex -= 1;
+        }
+        final ShoppingListItem item =
+            selectedList.collection.removeAt(oldIndex);
+        selectedList.collection.insert(newIndex, item);
+        BlocProvider.of<ShoppingListBloc>(context)
+            .add(UpdateList(selectedList, "data"));
+      },
+      children: selectedList.collection.map((item) {
+//      return AnimatedSwitcher(
+//        duration: const Duration(milliseconds: 500),
+//        transitionBuilder: (Widget child, Animation<double> animation) =>
+//            SlideTransition(
+//          position: animation.drive(Tween(
+//            begin: Offset(0, 1),
+//            end: Offset(0, 0),
+//          )),
+//          child: child,
+//        ),
+//        child: isEditing
+//            ? editTile(context, item, selectedList)
+//            : itemTile(context, item, selectedList),
+//      );
+        return itemTile(context, item, selectedList);
       }).toList(),
     );
   }
 
-  Widget normalTile(
-      BuildContext context, ShoppingListItem item, ShoppingListEntity entity) {
-    return ListTile(
-      leading: Checkbox(
+  Widget itemTile(
+      BuildContext context, ShoppingListItem item, ShoppingListEntity list) {
+    return Slidable(
+      key: ValueKey(item.uid),
+      actionPane: SlidableDrawerActionPane(),
+      actionExtentRatio: 0.25,
+      actions: <Widget>[
+        IconSlideAction(
+          icon: Icons.edit,
+          color: Colors.green,
+          caption: 'Edit',
+          onTap: () {
+            Navigator.push(context, MaterialPageRoute(builder: (context) {
+              return AddEditScreen(list, item);
+            }));
+          },
+        ),
+        IconSlideAction(
+          icon: Icons.delete,
+          color: Colors.red,
+          caption: 'Delete',
+          onTap: () {
+            list.collection.remove(item);
+            BlocProvider.of<ShoppingListBloc>(context)
+                .add(UpdateList(list, "data"));
+          },
+        )
+      ],
+      child: CheckboxListTile(
+        key: ValueKey(isEditing),
+        title: Text(item.title,
+            style: item.complete ? completedItem : TextStyle()),
+        subtitle: Text(item.description),
         value: item.complete,
         onChanged: (value) {
           item.complete = !item.complete;
           BlocProvider.of<ShoppingListBloc>(context)
-              .add(UpdateList(entity, "data"));
+              .add(UpdateList(list, "data"));
         },
+        controlAffinity: ListTileControlAffinity.leading,
       ),
-      title:
-          Text(item.title, style: item.complete ? completedItem : TextStyle()),
-      //subtitle: Text(item.description),
-      onTap: () {
-        item.complete = !item.complete;
-        BlocProvider.of<ShoppingListBloc>(context)
-            .add(UpdateList(entity, "data"));
-      },
-    );
-  }
-
-  Widget editTile(
-      BuildContext context, ShoppingListItem item, ShoppingListEntity entity) {
-    return ListTile(
-      leading: Checkbox(
-        value: item.complete,
-        onChanged: (value) {
-          item.complete = !item.complete;
-          BlocProvider.of<ShoppingListBloc>(context)
-              .add(UpdateList(entity, "data"));
-        },
-      ),
-      title:
-          Text(item.title, style: item.complete ? completedItem : TextStyle()),
-      subtitle: Text(item.description),
-      trailing: Icon(Icons.edit),
-      onTap: () {
-        item.complete = !item.complete;
-        BlocProvider.of<ShoppingListBloc>(context)
-            .add(UpdateList(entity, "data"));
-      },
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    //return mainBody(context);
     return BlocBuilder<ShoppingListBloc, ShoppingListState>(
       builder: (context, state) {
         if (state is ListsLoaded) {
@@ -184,174 +284,9 @@ class _ListViewerState extends State<ListViewer> {
           return mainBody(context, selectedList);
         }
 
-        return Container();
+        Navigator.of(context).pop();
+        return null;
       },
-    );
-  }
-}
-
-class EditableTile extends StatefulWidget {
-  final ShoppingListEntity list;
-  final ShoppingListItem item;
-
-  EditableTile(this.list, this.item);
-
-  @override
-  _EditableTileState createState() => _EditableTileState(list, item);
-}
-
-class _EditableTileState extends State<EditableTile> {
-  final TextStyle completedItem =
-      TextStyle(decoration: TextDecoration.lineThrough);
-  final ShoppingListEntity list;
-  final ShoppingListItem item;
-  final _formKey = GlobalKey<FormState>();
-  bool isEditing = false;
-  final double itemSize = 70;
-
-  _EditableTileState(this.list, this.item);
-
-  Widget notEditing() {
-    if (item.title == '') {
-      return SizedBox(
-        key: ValueKey<bool>(isEditing),
-        height: itemSize,
-        child: ListTile(
-            leading: IconButton(
-          icon: Icon(Icons.add),
-          //onPressed:,
-        )),
-      );
-    }
-    return SizedBox(
-      height: itemSize,
-      child: ListTile(
-        leading: Checkbox(
-          value: item.complete,
-          onChanged: (value) {
-            item.complete = !item.complete;
-            BlocProvider.of<ShoppingListBloc>(context)
-                .add(UpdateList(list, "data"));
-          },
-        ),
-        title: Text(item.title,
-            style: item.complete ? completedItem : TextStyle()),
-        //subtitle: Text(item.description),
-        onTap: () {
-          setState(() {
-            isEditing = true;
-          });
-        },
-      ),
-    );
-  }
-
-  void submitForm() {
-    FormState form = _formKey.currentState;
-    if (form.validate()) {
-      FocusScope.of(context).unfocus();
-      form.save();
-      BlocProvider.of<ShoppingListBloc>(context).add(UpdateList(list, "data"));
-      setState(() {
-        isEditing = false;
-      });
-    }
-  }
-
-  Widget editingTile2() {
-    return SizedBox(
-      key: ValueKey<bool>(isEditing),
-      height: itemSize,
-      child: ListTile(
-        title: Form(
-          key: _formKey,
-          child: TextFormField(
-            initialValue: item.title,
-            onSaved: (value) {
-              setState(() {
-                item.title = value;
-              });
-            },
-            validator: (value) {
-              if (value.isEmpty) {
-                return 'Entry cannot be empty.';
-              }
-              return null;
-            },
-          ),
-        ),
-        trailing: IconButton(
-          icon: Icon(Icons.check),
-          onPressed: () {
-            print('submitting form');
-            submitForm();
-          },
-        ),
-      ),
-    );
-  }
-
-  Widget editingTile() {
-    return Card(
-        child: Padding(
-      padding: EdgeInsets.all(10),
-      child: Form(
-        key: _formKey,
-        child: Column(
-          children: <Widget>[
-            TextFormField(
-              initialValue: item.title,
-              decoration: InputDecoration(
-                labelText: 'Entry name',
-              ),
-              onSaved: (value) {
-                setState(() {
-                  item.title = value;
-                });
-              },
-              validator: (value) {
-                if (value.isEmpty) {
-                  return 'Entry must cannot be empty.';
-                }
-                return null;
-              },
-            ),
-            TextFormField(
-                initialValue: item.description,
-                decoration: InputDecoration(labelText: 'Description'),
-                onSaved: (value) {
-                  setState(() {
-                    item.description = value != null ? value : '';
-                  });
-                }),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              children: <Widget>[
-                RaisedButton(
-                  onPressed: () => submitForm(),
-                  child: Text('Save'),
-                ),
-                RaisedButton(
-                  onPressed: () {
-                    setState(() {
-                      isEditing = false;
-                    });
-                  },
-                  child: Text('Cancel'),
-                ),
-              ],
-            )
-          ],
-        ),
-      ),
-    ));
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return AnimatedSwitcher(
-      duration: const Duration(seconds: 2),
-      child: isEditing ? editingTile2() : notEditing(),
     );
   }
 }

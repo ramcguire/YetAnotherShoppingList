@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:uuid/uuid.dart';
 
 class ShoppingListEntity {
   final String title;
@@ -36,6 +37,18 @@ class ShoppingListEntity {
         creationDate = DateTime.now(),
         id = null;
 
+  ShoppingListEntity copyWith(String title) {
+    return ShoppingListEntity(
+      title ?? this.title,
+      this.id,
+      this.owner,
+      this.collection,
+      this.reference,
+      this.authorized,
+      this.creationDate,
+    );
+  }
+
   Map toJson() => {
         'title': title,
         'owner': owner,
@@ -53,31 +66,35 @@ class ShoppingListEntity {
       'data': FieldValue.arrayUnion(collection.map((item) {
         return item.toJson();
       }).toList()),
-      'authorized' : FieldValue.arrayUnion(authorized),
+      'authorized': FieldValue.arrayUnion(authorized),
       'created_at': Timestamp.fromDate(creationDate),
     };
   }
 }
 
 class ShoppingListItem {
+  final String uid;
   String title;
   String description;
   bool complete;
 
-  ShoppingListItem(this.title, this.description, this.complete);
+  ShoppingListItem(this.title, this.description, this.complete, this.uid);
 
   ShoppingListItem.fromMap(Map<String, dynamic> item)
       : title = item['title'],
-        description = item['id'] ?? '',
-        complete = item['complete'];
+        description = item['description'] ?? '',
+        complete = item['complete'],
+        uid = item['uid'];
 
   ShoppingListItem.createNew()
       : title = '',
         description = '',
-        complete = false;
+        complete = false,
+        uid = Uuid().v4();
 
   @override
-  int get hashCode => complete.hashCode ^ title.hashCode ^ description.hashCode;
+  int get hashCode =>
+      complete.hashCode ^ title.hashCode ^ description.hashCode ^ uid.hashCode;
 
   @override
   bool operator ==(Object other) =>
@@ -86,6 +103,7 @@ class ShoppingListItem {
           runtimeType == other.runtimeType &&
           complete == other.complete &&
           title == other.title &&
+          uid == other.uid &&
           description == other.description;
 
   Map<String, dynamic> toJson() {
@@ -93,6 +111,7 @@ class ShoppingListItem {
       'complete': complete,
       'title': title,
       'description': description,
+      'uid': uid,
     };
   }
 
@@ -101,6 +120,7 @@ class ShoppingListItem {
       json['title'] as String,
       json['description'] as String,
       json['complete'] as bool,
+      json['uid'] as String,
     );
   }
 }

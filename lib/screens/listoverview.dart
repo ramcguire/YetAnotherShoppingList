@@ -1,55 +1,69 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_slidable/flutter_slidable.dart';
+import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:yetanothershoppinglist/blocs/blocs.dart';
 import 'package:yetanothershoppinglist/repositories/repositories.dart';
-import 'package:flutter_swiper/flutter_swiper.dart';
 import 'package:yetanothershoppinglist/screens/screens.dart';
 import 'package:yetanothershoppinglist/widgets/drawer.dart';
 
 final double _cardElevation = 10.0; // for ease of "tweaking", remove later
 
 class ListOverview extends StatelessWidget {
-  final List<ShoppingListEntity> lists;
+  final _newListForm = GlobalKey<FormState>();
+  bool loadingNewList = false;
 
-  ListOverview(this.lists);
+  Widget _listItemSummary(BuildContext context, ShoppingListEntity list) {}
 
   Widget _buildListOverview(BuildContext context, ShoppingListEntity list) {
-    List<Widget> overview = List<Widget>();
-    overview.add(Text(list.title));
-    //overview.add(Spacer());
-    list.collection.forEach((item) {
-      overview.add(Text(item.title));
-    });
-    return Material(
-      key: ValueKey(list.id),
-      child: InkWell(
-        onTap: () {
-          print('picked list with id ${list.id}');
-          Navigator.push(context, MaterialPageRoute(builder: (context) {
-            return ListViewer(list.id);
-          }));
-        },
-        child: Card(
-          elevation: _cardElevation,
-          child: Column(
-            children: overview,
+//    List<Widget> overview = List<Widget>();
+//    overview.add(Text(list.title));
+//    //overview.add(Spacer());
+//    list.collection.forEach((item) {
+//      overview.add(Text(item.title));
+//    });
+    return SizedBox(
+      height: 400,
+      child: Material(
+        child: InkWell(
+          onTap: () {
+            print('picked list with id ${list.id}');
+            Navigator.push(context, MaterialPageRoute(builder: (context) {
+              return ListViewer(list.id);
+            }));
+          },
+          child: Card(
+            elevation: _cardElevation,
+            child: Column(
+              children: <Widget>[
+                Text(list.title),
+                Divider(),
+                Text(
+                  multiLineString(list),
+                  overflow: TextOverflow.fade,
+                ),
+              ],
+            ),
           ),
         ),
       ),
     );
   }
 
-  @override
-  Widget build(BuildContext context) {
-    List<Widget> listPreview = List<Widget>.from((lists).map((list) {
-      return _buildListOverview(context, list);
-    }));
+  String multiLineString(ShoppingListEntity list) {
+    StringBuffer sb = StringBuffer();
+    list.collection.forEach((item) {
+      sb.write(item.title + '\n');
+    });
+    return sb.toString();
+  }
 
-    listPreview.add(CreateList());
-    return Scaffold(
-        drawer: buildDrawer(context),
-        appBar: AppBar(
-          title: Text('Home'),
+  Widget _buildListCards(BuildContext context, ListsLoaded state) {
+    List<ShoppingListEntity> lists = state.lists;
+    return CustomScrollView(
+      slivers: <Widget>[
+        SliverAppBar(
+          title: Text('ListOverview'),
           actions: <Widget>[
             IconButton(
               icon: Icon(Icons.exit_to_app),
@@ -58,106 +72,102 @@ class ListOverview extends StatelessWidget {
                   LoggedOut(),
                 );
               },
-            )
+            ),
           ],
         ),
-        body: Swiper(
-          control: SwiperControl(),
-          itemBuilder: (BuildContext context, int idx) {
-            return listPreview[idx];
-          },
-          itemCount: listPreview.length,
-          viewportFraction: 0.8,
-          scale: 0.8,
-        ));
-  }
-}
+        SliverList(
+          delegate: SliverChildBuilderDelegate(
+            (context, idx) => _buildListOverview(context, state.lists[idx]),
+            childCount: state.lists.length,
+          ),
+        )
+      ],
+    );
 
-class CreateList extends StatefulWidget {
-  @override
-  _CreateListState createState() => _CreateListState();
-}
-
-class _CreateListState extends State<CreateList> {
-  bool isEditing;
-  String listTitle;
-  final SnackBar snackBar = SnackBar(content: Text('Creating a new list...'));
-  final _formKey = GlobalKey<FormState>();
-
-  void submitForm() {
-    var form = _formKey.currentState;
-    if (form.validate()) {
-      FocusScope.of(context).unfocus();
-      form.save();
-      BlocProvider.of<ShoppingListBloc>(context).add(CreateNewList(listTitle));
-      print('saved list title of $listTitle');
-    }
+    return ListView.builder(
+      scrollDirection: Axis.vertical,
+      itemCount: state.lists.length,
+      itemBuilder: (BuildContext context, int idx) {
+        return _buildListOverview(context, lists[idx]);
+      },
+    );
   }
 
-  Widget _newListForm(BuildContext context) {
+  void createNewList(BuildContext context, String listTitle) {
+    loadingNewList = true;
     ShoppingListBloc bloc = BlocProvider.of<ShoppingListBloc>(context);
-    return Card(
-        elevation: _cardElevation,
-        child: Padding(
-          padding: EdgeInsets.symmetric(horizontal: 16.0),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              children: <Widget>[
-                TextFormField(
-                  decoration: InputDecoration(
-                    labelText: 'List name',
-                  ),
-                  onSaved: (value) {
-                    setState(() {
-                      listTitle = value;
-                    });
-                  },
-                  validator: (value) {
-                    if (value.isEmpty) {
-                      return 'Enter a title to create a new list';
-                    }
-                    return null;
-                  },
-                ),
-                Divider(height: 100),
-                RaisedButton(
-                  onPressed: () => submitForm(),
-                  child: Text('Create new list'),
-                ),
-              ],
-            ),
+    bloc.getRepository().createNewShoppingList(listTitle, bloc.getUser()).then(
+        (_) => Navigator.push(context, MaterialPageRoute(builder: (context) {
+              return ListViewer(_);
+            })));
+  }
+
+  Widget newListForm(BuildContext context) {
+    return AlertDialog(
+        title: Text('Add a user'),
+        actions: <Widget>[
+          FlatButton(
+            onPressed: () {
+              if (_newListForm.currentState.validate()) {
+                Navigator.of(context).pop();
+                _newListForm.currentState.save();
+              }
+            },
+            child: Text('Create new list'),
+          ),
+          FlatButton(
+            child: Text('Cancel'),
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+          ),
+        ],
+        content: Form(
+          key: _newListForm,
+          child: TextFormField(
+            autofocus: true,
+            onSaved: (value) {
+              createNewList(context, value);
+            },
+            validator: (value) {
+              if (value.isEmpty) {
+                return 'List title cannot be blank';
+              }
+              return null;
+            },
           ),
         ));
   }
 
-  Widget _createNewList() {
-    return Material(
-      child: InkWell(
-        splashColor: Colors.blue,
-        child: Card(
-          elevation: _cardElevation,
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            crossAxisAlignment: CrossAxisAlignment.center,
-            children: <Widget>[
-              IconButton(
-                icon: Icon(Icons.add),
-                tooltip: 'Create a new list',
-                onPressed: () {
-                  print('create new list button pushed');
-                },
-              ),
-              Text('Create a new list'),
-            ],
-          ),
-        ),
-      ),
+  FloatingActionButton createListButton(BuildContext context) {
+    return FloatingActionButton(
+      child: Icon(Icons.add),
+      backgroundColor: Colors.green,
+      onPressed: () {
+        showDialog(context: context, child: newListForm(context));
+      },
     );
   }
 
   @override
   Widget build(BuildContext context) {
-    return _newListForm(context);
+    return Scaffold(
+        floatingActionButton: createListButton(context),
+        drawer: buildDrawer(context),
+        body: loadingNewList
+            ? SpinKitCubeGrid(
+                size: 150.0,
+                color: Colors.blue,
+              )
+            : BlocBuilder<ShoppingListBloc, ShoppingListState>(
+                builder: (context, state) {
+                  if (state is ListsLoaded) {
+                    return _buildListCards(context, state);
+                  }
+                  return Center(
+                    child: CircularProgressIndicator(),
+                  );
+                },
+              ));
   }
 }
