@@ -6,22 +6,23 @@ import 'package:yetanothershoppinglist/blocs/blocs.dart';
 import 'package:yetanothershoppinglist/repositories/repositories.dart';
 import 'package:yetanothershoppinglist/screens/screens.dart';
 import 'package:yetanothershoppinglist/widgets/drawer.dart';
+import 'package:yetanothershoppinglist/widgets/item_tile.dart';
 
 final double _cardElevation = 10.0; // for ease of "tweaking", remove later
 
 class ListOverview extends StatelessWidget {
   final _newListForm = GlobalKey<FormState>();
   bool loadingNewList = false;
-
-  Widget _listItemSummary(BuildContext context, ShoppingListEntity list) {}
+  final TextStyle _titleStyle = TextStyle(
+    fontSize: 40,
+  );
+  final TextStyle _itemStyle = TextStyle(fontSize: 20);
+  final TextStyle _completeItem = TextStyle(
+    fontSize: 20,
+    decoration: TextDecoration.lineThrough,
+  );
 
   Widget _buildListOverview(BuildContext context, ShoppingListEntity list) {
-//    List<Widget> overview = List<Widget>();
-//    overview.add(Text(list.title));
-//    //overview.add(Spacer());
-//    list.collection.forEach((item) {
-//      overview.add(Text(item.title));
-//    });
     return SizedBox(
       height: 400,
       child: Material(
@@ -34,14 +35,19 @@ class ListOverview extends StatelessWidget {
           },
           child: Card(
             elevation: _cardElevation,
-            child: Column(
+            child: Wrap(
               children: <Widget>[
-                Text(list.title),
-                Divider(),
                 Text(
-                  multiLineString(list),
-                  overflow: TextOverflow.fade,
+                  list.title,
+                  style: _titleStyle,
+                  overflow: TextOverflow.ellipsis,
                 ),
+                Divider(),
+              Wrap(
+                children: list.collection.map((item) {
+                  return itemTile(context, item, list, true);
+                }).toList(),
+              )
               ],
             ),
           ),
@@ -53,7 +59,7 @@ class ListOverview extends StatelessWidget {
   String multiLineString(ShoppingListEntity list) {
     StringBuffer sb = StringBuffer();
     list.collection.forEach((item) {
-      sb.write(item.title + '\n');
+      sb.write(String.fromCharCode(0x2022) + '\t' + item.title + '\n');
     });
     return sb.toString();
   }
@@ -82,14 +88,6 @@ class ListOverview extends StatelessWidget {
           ),
         )
       ],
-    );
-
-    return ListView.builder(
-      scrollDirection: Axis.vertical,
-      itemCount: state.lists.length,
-      itemBuilder: (BuildContext context, int idx) {
-        return _buildListOverview(context, lists[idx]);
-      },
     );
   }
 

@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:yetanothershoppinglist/blocs/blocs.dart';
 import 'package:yetanothershoppinglist/repositories/repositories.dart';
 import 'package:yetanothershoppinglist/screens/add_edit.dart';
+import 'package:yetanothershoppinglist/widgets/item_tile.dart';
 import 'package:yetanothershoppinglist/widgets/share.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:email_validator/email_validator.dart';
@@ -225,52 +226,8 @@ class _ListViewerState extends State<ListViewer> {
 //            ? editTile(context, item, selectedList)
 //            : itemTile(context, item, selectedList),
 //      );
-        return itemTile(context, item, selectedList);
+        return itemTile(context, item, selectedList, false);
       }).toList(),
-    );
-  }
-
-  Widget itemTile(
-      BuildContext context, ShoppingListItem item, ShoppingListEntity list) {
-    return Slidable(
-      key: ValueKey(item.uid),
-      actionPane: SlidableDrawerActionPane(),
-      actionExtentRatio: 0.25,
-      actions: <Widget>[
-        IconSlideAction(
-          icon: Icons.edit,
-          color: Colors.green,
-          caption: 'Edit',
-          onTap: () {
-            Navigator.push(context, MaterialPageRoute(builder: (context) {
-              return AddEditScreen(list, item);
-            }));
-          },
-        ),
-        IconSlideAction(
-          icon: Icons.delete,
-          color: Colors.red,
-          caption: 'Delete',
-          onTap: () {
-            list.collection.remove(item);
-            BlocProvider.of<ShoppingListBloc>(context)
-                .add(UpdateList(list, "data"));
-          },
-        )
-      ],
-      child: CheckboxListTile(
-        key: ValueKey(isEditing),
-        title: Text(item.title,
-            style: item.complete ? completedItem : TextStyle()),
-        subtitle: Text(item.description),
-        value: item.complete,
-        onChanged: (value) {
-          item.complete = !item.complete;
-          BlocProvider.of<ShoppingListBloc>(context)
-              .add(UpdateList(list, "data"));
-        },
-        controlAffinity: ListTileControlAffinity.leading,
-      ),
     );
   }
 

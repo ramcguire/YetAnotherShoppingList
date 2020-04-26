@@ -8,6 +8,7 @@ class ShareScreen extends StatelessWidget {
   final String listId;
   final Widget userPrompt;
 
+
   ShareScreen(this.listId, this.userPrompt);
 
   Widget _buildUserTile(BuildContext context, ShoppingListEntity list,
@@ -15,6 +16,7 @@ class ShareScreen extends StatelessWidget {
     if (list.owner == user) {
       return ListTile(
         title: Text(user),
+        subtitle: Text('Owner'),
         trailing: Icon(Icons.lock_outline),
       );
     }
