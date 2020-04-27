@@ -10,6 +10,7 @@ class AddEditScreen extends StatelessWidget {
   final ShoppingListItem item;
   String _description;
   String _title;
+  String _category;
 
   AddEditScreen(this.list, this.item) : adding = false;
 
@@ -23,17 +24,24 @@ class AddEditScreen extends StatelessWidget {
       if (adding) {
         item.description = _description;
         item.title = _title;
+        item.category = _category;
         currentList.collection.add(item);
+        BlocProvider.of<ShoppingListBloc>(context).add(
+            UpdateList(currentList, "data"));
+        return;
       }
       // prevent unnecessary writes
-      else if (item.description != _description || item.title != _title) {
+      else if (item.description != _description || item.title != _title ||
+          item.category != _category) {
         ShoppingListItem currentItem = currentList.collection.firstWhere((
             i) => i.uid == item.uid);
         currentItem.description = _description;
         currentItem.title = _title;
+        item.category = _category;
+        BlocProvider.of<ShoppingListBloc>(context).add(
+            UpdateList(currentList, "data"));
+        return;
       }
-      BlocProvider.of<ShoppingListBloc>(context).add(UpdateList(currentList, "data"));
-      Navigator.of(context).pop();
     }
   }
 
@@ -55,6 +63,7 @@ class AddEditScreen extends StatelessWidget {
               child: Icon(Icons.save),
               onPressed: () {
                 handleSave(context, currentList);
+                Navigator.of(context).pop();
               },
             ),
             appBar: AppBar(
@@ -67,7 +76,10 @@ class AddEditScreen extends StatelessWidget {
                 Divider(),
                 IconButton(
                   icon: Icon(Icons.check),
-                  onPressed: () => handleSave(context, currentList),
+                  onPressed: () {
+                    handleSave(context, currentList);
+                    Navigator.of(context).pop();
+                  }
                 ),
               ],
             ),
@@ -103,7 +115,25 @@ class AddEditScreen extends StatelessWidget {
                         labelText: 'Description',
                         icon: Icon(Icons.description),
                       ),
-                    )
+                    ),
+                   Expanded(
+                     child: Center(
+                       child:  DropdownButton<String>(
+                         value: item.category,
+                         icon: Icon(Icons.label),
+                         onChanged: (value) {
+                           _category = value;
+                           handleSave(context, currentList);
+                         },
+                         items: list.categories.map<DropdownMenuItem<String>>((cat) {
+                           return DropdownMenuItem(
+                             value: cat,
+                             child: Text(cat),
+                           );
+                         }).toList(),
+                       ),
+                     ),
+                   )
                   ],
                 ),
               ),

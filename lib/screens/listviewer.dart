@@ -212,7 +212,7 @@ class _ListViewerState extends State<ListViewer> {
                   selectedList.collection.removeAt(oldIndex);
               selectedList.collection.insert(newIndex, item);
               BlocProvider.of<ShoppingListBloc>(context)
-                  .add(UpdateListLocal(selectedList, state.lists, "data"));
+                  .add(UpdateList(selectedList, "data"));
             },
             children: selectedList.collection.map<Widget>((item) {
               return itemTile(context, item, selectedList, false);

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:yetanothershoppinglist/blocs/blocs.dart';
 import 'package:yetanothershoppinglist/repositories/repositories.dart';
@@ -24,89 +23,77 @@ class ListOverview extends StatelessWidget {
 
   Widget _buildListOverview(
       BuildContext context, ShoppingListEntity list, ListsLoaded state) {
-    return ClipRRect(
-      clipBehavior: Clip.hardEdge,
-      borderRadius: BorderRadius.circular(20),
-      child: SizedBox(
-        height: 250,
-        child: Material(
-          child: Dismissible(
-            key: ValueKey(list),
-            onDismissed: (direction) {
-              BlocProvider.of<ShoppingListBloc>(context)
-                  .add(DeleteList(list, state.lists));
-              Scaffold.of(context).showSnackBar(SnackBar(
-                content: Text('List ${list.title} dismissed'),
-              ));
+    return SizedBox(
+      height: 250,
+      child: Material(
+        child: Dismissible(
+          key: ValueKey(list),
+          onDismissed: (direction) {
+            BlocProvider.of<ShoppingListBloc>(context)
+                .add(DeleteList(list, state.lists));
+            Scaffold.of(context).showSnackBar(SnackBar(
+              content: Text('List ${list.title} dismissed'),
+            ));
+          },
+          child: InkWell(
+            onTap: () {
+              print('picked list with id ${list.id}');
+              Navigator.push(context, MaterialPageRoute(builder: (context) {
+                return ListViewer(list.id);
+              }));
             },
-            child: InkWell(
-              onTap: () {
-                print('picked list with id ${list.id}');
-                Navigator.push(context, MaterialPageRoute(builder: (context) {
-                  return ListViewer(list.id);
-                }));
-              },
-              child: Card(
-                elevation: _cardElevation,
-                child: Stack(
-                  //overflow: Overflow.clip,
-                  children: <Widget>[
-                    Text(
-                      list.title,
-                      style: _titleStyle,
-                      overflow: TextOverflow.ellipsis,
-                      textAlign: TextAlign.center,
-                    ),
-                    Container(
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment(0.0, -1.0),
-                          end: Alignment(0.0, -0.35),// 10% of the width, so there are ten blinds.
-                          colors: [Colors.black54, Colors.white], // whitish to gray
-                          //tileMode: TileMode.clamp, // repeats the gradient over the canvas
+            child: Card(
+              elevation: _cardElevation,
+              child: Stack(
+                children: <Widget>[
+                  Column(
+                    //overflow: Overflow.clip,
+                    children: <Widget>[
+                      Text(
+                        list.title,
+                        style: _titleStyle,
+                        overflow: TextOverflow.ellipsis,
+                        textAlign: TextAlign.center,
+                      ),
+                      Container(),
+                      Container(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment(0.0, -1.0),
+                            end: Alignment(0.0, 0.0),
+                            colors: [Colors.black, Colors.black12],
+                          ),
                         ),
                       ),
-                    ),
-                    Container(
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment(0.0, -1.0),
-                          end: Alignment(0.0, -0.35),// 10% of the width, so there are ten blinds.
-                          colors: [Colors.black54, Colors.white], // whitish to gray
-                          //tileMode: TileMode.clamp, // repeats the gradient over the canvas
+                      //Spacer(),
+                      list.collection.length != 0
+                          ? Container(
+                        height: 200,
+                        child: ListView.builder(
+                          physics: NeverScrollableScrollPhysics(),
+                          itemCount: list.collection.length,
+                          itemBuilder: (context, idx) {
+                            return itemTile(
+                                context, list.collection[idx], list, true);
+                          },
+                        ),
+                      )
+                          : Opacity(
+                        opacity: 0.5,
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          crossAxisAlignment: CrossAxisAlignment.center,
+                          children: <Widget>[
+                            Icon(Icons.filter_none, size: 42),
+                            Divider(),
+                            Text('This list is empty',
+                                style: TextStyle(fontSize: 24.0)),
+                          ],
                         ),
                       ),
-                    ),
-                    ListView(
-                      physics: NeverScrollableScrollPhysics(),
-                      children: <Widget>[
-
-                        list.collection.length != 0
-                            ? ClipRect(
-                          clipBehavior: Clip.hardEdge,
-                          child: Wrap(
-                            children: list.collection.map((item) {
-                              return itemTile(context, item, list, true);
-                            }).toList(),
-                          ),
-                        )
-                            : Opacity(
-                          opacity: 0.5,
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: <Widget>[
-                              Icon(Icons.filter_none, size: 42),
-                              Divider(),
-                              Text('This list is empty',
-                                  style: TextStyle(fontSize: 24.0)),
-                            ],
-                          ),
-                        )
-                      ],
-                    ),
-                  ],
-                ),
+                    ],
+                  )
+                ],
               ),
             ),
           ),

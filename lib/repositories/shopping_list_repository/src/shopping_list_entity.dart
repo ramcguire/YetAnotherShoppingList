@@ -7,11 +7,12 @@ class ShoppingListEntity {
   final String id;
   final List<ShoppingListItem> collection;
   final List<String> authorized;
+  final List<String> categories;
   final DateTime creationDate;
   DocumentReference reference;
 
   ShoppingListEntity(this.title, this.id, this.owner, this.collection,
-      this.reference, this.authorized, this.creationDate);
+      this.reference, this.authorized, this.categories, this.creationDate);
 
   // construct a shopping list from DocumentSnapshot
   ShoppingListEntity.fromSnapshot(DocumentSnapshot snapshot)
@@ -21,8 +22,10 @@ class ShoppingListEntity {
         reference = snapshot.reference,
         creationDate = snapshot.data['created_at'].toDate(),
         collection = snapshot.data['data'].map<ShoppingListItem>((entries) {
-          print('in shoppinglist contructor for title ${snapshot['title']}');
           return ShoppingListItem.fromMap(entries);
+        }).toList(),
+        categories = snapshot.data['categories'].map<String>((cat) {
+          return cat.toString();
         }).toList(),
         authorized = snapshot.data['authorized'].map<String>((user) {
           return user.toString();
@@ -34,6 +37,7 @@ class ShoppingListEntity {
         collection = List<ShoppingListItem>(),
         authorized = List<String>.generate(1, (int idx) => owner),
         creationDate = DateTime.now(),
+        categories = List<String>.generate(1, (int idx) => 'None'),
         id = null;
 
   ShoppingListEntity copyWith(String title) {
@@ -44,6 +48,7 @@ class ShoppingListEntity {
       this.collection,
       this.reference,
       this.authorized,
+      this.categories,
       this.creationDate,
     );
   }
@@ -56,6 +61,7 @@ class ShoppingListEntity {
         }).toList()),
         'authorized': FieldValue.arrayUnion(authorized),
         'created_at': creationDate.millisecondsSinceEpoch,
+        'categories': FieldValue.arrayUnion(categories),
       };
 
   Map<String, dynamic> toDocument() {
@@ -67,6 +73,7 @@ class ShoppingListEntity {
       }).toList()),
       'authorized': FieldValue.arrayUnion(authorized),
       'created_at': Timestamp.fromDate(creationDate),
+      'categories': FieldValue.arrayUnion(categories),
     };
   }
 }
@@ -74,6 +81,7 @@ class ShoppingListEntity {
 class ShoppingListItem {
   final String uid;
   String title;
+  String category;
   String description;
   bool complete;
 
@@ -82,12 +90,14 @@ class ShoppingListItem {
   ShoppingListItem.fromMap(Map<String, dynamic> item)
       : title = item['title'],
         description = item['description'] ?? '',
+        category = item['category'] ?? 'None',
         complete = item['complete'],
         uid = item['uid'];
 
   ShoppingListItem.createNew()
       : title = '',
         description = '',
+        category = 'None',
         complete = false,
         uid = Uuid().v4();
 
@@ -111,6 +121,7 @@ class ShoppingListItem {
       'title': title,
       'description': description,
       'uid': uid,
+      'category': category,
     };
   }
 

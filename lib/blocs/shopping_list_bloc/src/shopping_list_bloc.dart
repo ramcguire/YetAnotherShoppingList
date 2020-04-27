@@ -30,8 +30,6 @@ class ShoppingListBloc extends Bloc<ShoppingListEvent, ShoppingListState> {
       yield* _mapDeleteListToState(event);
     } else if (event is ListsUpdated) {
       yield* _mapListsUpdatedToState(event);
-    } else if (event is UpdateListLocal) {
-      yield* _mapUpdateListLocal(event);
     }
   }
 
@@ -43,20 +41,11 @@ class ShoppingListBloc extends Bloc<ShoppingListEvent, ShoppingListState> {
     _listSubscription?.cancel();
     _listSubscription = _listRepository.shoppingLists(_user).listen(
           (lists) => add(ListsUpdated(lists)),
-    );
-  }
-
-  Stream<ShoppingListState> _mapUpdateListLocal(UpdateListLocal event) async* {
-    List<ShoppingListEntity> localLists = event.lists;
-    _listRepository.updateShoppingList(event.updatedList, event.updatedField);
-    int idx = localLists.indexWhere((i) => i.id == event.updatedList.id);
-    localLists[idx] = event.updatedList;
-    yield ListsLoaded(localLists);
+        );
   }
 
   Stream<ShoppingListState> _mapUpdateListToState(UpdateList event) async* {
-    await _listRepository.updateShoppingList(
-        event.updatedList, event.updatedField);
+    _listRepository.updateShoppingList(event.updatedList, event.updatedField);
   }
 
   Stream<ShoppingListState> _mapDeleteListToState(DeleteList event) async* {
