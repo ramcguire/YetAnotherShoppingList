@@ -32,9 +32,9 @@ class ShoppingListRepository {
     return list.id;
   }
 
-  Future<void> updateShoppingList(ShoppingListEntity list, String field) async {
+   void updateShoppingList(ShoppingListEntity list, String field) {
     print('updateing $field field');
-    await list.reference.setData(list.toDocument());
+    list.reference.setData(list.toDocument());
     //await list.reference.updateData(list.toJson());
   }
 }

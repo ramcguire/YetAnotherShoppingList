@@ -31,8 +31,7 @@ class ShoppingListEntity {
   ShoppingListEntity.createNew(String title, String owner)
       : title = title,
         owner = owner,
-        collection = List<ShoppingListItem>.generate(
-            1, (int idx) => ShoppingListItem.createNew()),
+        collection = List<ShoppingListItem>(),
         authorized = List<String>.generate(1, (int idx) => owner),
         creationDate = DateTime.now(),
         id = null;

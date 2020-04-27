@@ -24,16 +24,14 @@ class ShoppingListBloc extends Bloc<ShoppingListEvent, ShoppingListState> {
   Stream<ShoppingListState> mapEventToState(ShoppingListEvent event) async* {
     if (event is LoadLists) {
       yield* _mapLoadListsToState();
-    } else if (event is AddList) {
-      yield* _mapAddListToState(event);
     } else if (event is UpdateList) {
       yield* _mapUpdateListToState(event);
     } else if (event is DeleteList) {
       yield* _mapDeleteListToState(event);
     } else if (event is ListsUpdated) {
       yield* _mapListsUpdatedToState(event);
-    } else if (event is CreateNewList) {
-      yield* _mapCreateNewListToState(event);
+    } else if (event is UpdateListLocal) {
+      yield* _mapUpdateListLocal(event);
     }
   }
 
@@ -45,18 +43,15 @@ class ShoppingListBloc extends Bloc<ShoppingListEvent, ShoppingListState> {
     _listSubscription?.cancel();
     _listSubscription = _listRepository.shoppingLists(_user).listen(
           (lists) => add(ListsUpdated(lists)),
-        );
+    );
   }
 
-  Stream<ShoppingListState> _mapAddListToState(AddList event) async* {
-    // need to implement this in ShoppingListEntity and ShoppingListRepository
-  }
-
-  Stream<ShoppingListState> _mapCreateNewListToState(
-      CreateNewList event) async* {
-    // need to implement this in ShoppingListEntity and ShoppingListRepository
-    String newListId =
-        await _listRepository.createNewShoppingList(event.newListTitle, _user);
+  Stream<ShoppingListState> _mapUpdateListLocal(UpdateListLocal event) async* {
+    List<ShoppingListEntity> localLists = event.lists;
+    _listRepository.updateShoppingList(event.updatedList, event.updatedField);
+    int idx = localLists.indexWhere((i) => i.id == event.updatedList.id);
+    localLists[idx] = event.updatedList;
+    yield ListsLoaded(localLists);
   }
 
   Stream<ShoppingListState> _mapUpdateListToState(UpdateList event) async* {
@@ -65,8 +60,10 @@ class ShoppingListBloc extends Bloc<ShoppingListEvent, ShoppingListState> {
   }
 
   Stream<ShoppingListState> _mapDeleteListToState(DeleteList event) async* {
+    List<ShoppingListEntity> localLists = event.lists;
+    localLists.removeWhere((i) => i.id == event.list.id);
     _listRepository.removeShoppingList(event.list);
-    yield ListsLoaded(event.lists);
+    yield ListsLoaded(localLists);
   }
 
   Stream<ShoppingListState> _mapListsUpdatedToState(ListsUpdated event) async* {

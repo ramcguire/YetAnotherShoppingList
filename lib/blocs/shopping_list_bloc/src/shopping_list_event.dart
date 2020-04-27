@@ -22,29 +22,20 @@ class AddList extends ShoppingListEvent {
   String toString() => 'AddList { list: $list }';
 }
 
-class CreateNewList extends ShoppingListEvent {
-  final String newListTitle;
-
-  const CreateNewList(this.newListTitle);
-
-  @override
-  List<Object> get props => [newListTitle];
-
-  @override
-  String toString() => 'CreateNewList { newListTitle: $newListTitle }';
-}
-
-class ViewList extends ShoppingListEvent {
+class UpdateListLocal extends ShoppingListEvent {
+  final ShoppingListEntity updatedList;
   final List<ShoppingListEntity> lists;
-  final String listId;
+  final String updatedField;
 
-  const ViewList(this.lists, this.listId);
-
-  @override
-  List<Object> get props => [lists, listId];
+  const UpdateListLocal(this.updatedList, this.lists, this.updatedField);
 
   @override
-  String toString() => 'CreateNewList { listId: $listId }';
+  List<Object> get props => [updatedList, updatedField];
+
+  @override
+  String toString() =>
+      'UpdateListLocal { updatedList: $updatedList, updatedField : $updatedField }';
+
 }
 
 class UpdateList extends ShoppingListEvent {
@@ -54,7 +45,7 @@ class UpdateList extends ShoppingListEvent {
   const UpdateList(this.updatedList, this.updatedField);
 
   @override
-  List<Object> get props => [updatedList, updatedList];
+  List<Object> get props => [updatedList, updatedField];
 
   @override
   String toString() =>

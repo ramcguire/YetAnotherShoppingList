@@ -130,9 +130,10 @@ class _ListViewerState extends State<ListViewer> {
         ));
   }
 
-  Widget mainBody(BuildContext context, ShoppingListEntity selectedList) {
+  Widget mainBody(BuildContext context, ShoppingListEntity selectedList,
+      ListsLoaded state) {
     List<Widget> tabs = List<Widget>();
-    tabs.add(tileList(context, selectedList));
+    tabs.add(tileList(context, selectedList, state));
     tabs.add(
         ShareScreen(selectedList.id, addUserDialog(context, selectedList)));
     return Scaffold(
@@ -199,19 +200,37 @@ class _ListViewerState extends State<ListViewer> {
     BlocProvider.of<ShoppingListBloc>(context).add(UpdateList(list, "data"));
   }
 
-  Widget tileList(BuildContext context, ShoppingListEntity selectedList) {
-    return ReorderableListView(
-      onReorder: (oldIndex, newIndex) {
-        if (newIndex > oldIndex) {
-          newIndex -= 1;
-        }
-        final ShoppingListItem item =
-            selectedList.collection.removeAt(oldIndex);
-        selectedList.collection.insert(newIndex, item);
-        BlocProvider.of<ShoppingListBloc>(context)
-            .add(UpdateList(selectedList, "data"));
-      },
-      children: selectedList.collection.map((item) {
+  Widget tileList(BuildContext context, ShoppingListEntity selectedList,
+      ListsLoaded state) {
+    return selectedList.collection.length != 0
+        ? ReorderableListView(
+            onReorder: (oldIndex, newIndex) {
+              if (newIndex > oldIndex) {
+                newIndex -= 1;
+              }
+              final ShoppingListItem item =
+                  selectedList.collection.removeAt(oldIndex);
+              selectedList.collection.insert(newIndex, item);
+              BlocProvider.of<ShoppingListBloc>(context)
+                  .add(UpdateListLocal(selectedList, state.lists, "data"));
+            },
+            children: selectedList.collection.map<Widget>((item) {
+              return itemTile(context, item, selectedList, false);
+            }).toList())
+        : Opacity(
+            opacity: 0.5,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: <Widget>[
+                Icon(Icons.filter_none, size: 42),
+                Divider(),
+                Text('This list is empty', style: TextStyle(fontSize: 24.0)),
+              ],
+            ),
+          );
+  }
+
 //      return AnimatedSwitcher(
 //        duration: const Duration(milliseconds: 500),
 //        transitionBuilder: (Widget child, Animation<double> animation) =>
@@ -226,10 +245,6 @@ class _ListViewerState extends State<ListViewer> {
 //            ? editTile(context, item, selectedList)
 //            : itemTile(context, item, selectedList),
 //      );
-        return itemTile(context, item, selectedList, false);
-      }).toList(),
-    );
-  }
 
   @override
   Widget build(BuildContext context) {
@@ -238,7 +253,7 @@ class _ListViewerState extends State<ListViewer> {
         if (state is ListsLoaded) {
           ShoppingListEntity selectedList =
               state.lists.firstWhere((list) => list.id == this.widget.listId);
-          return mainBody(context, selectedList);
+          return mainBody(context, selectedList, state);
         }
 
         Navigator.of(context).pop();
