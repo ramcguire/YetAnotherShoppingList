@@ -35,6 +35,5 @@ class ShoppingListRepository {
    void updateShoppingList(ShoppingListEntity list, String field) {
     print('updateing $field field');
     list.reference.setData(list.toDocument());
-    //await list.reference.updateData(list.toJson());
   }
 }

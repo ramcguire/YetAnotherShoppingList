@@ -1,16 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:yetanothershoppinglist/blocs/blocs.dart';
 import 'package:yetanothershoppinglist/repositories/repositories.dart';
 import 'package:yetanothershoppinglist/screens/screens.dart';
 import 'package:yetanothershoppinglist/widgets/drawer.dart';
-import 'package:yetanothershoppinglist/widgets/item_tile.dart';
 
 final double _cardElevation = 10.0; // for ease of "tweaking", remove later
 
 class ListOverview extends StatelessWidget {
+  final TextStyle completedItem =
+      TextStyle(decoration: TextDecoration.lineThrough, fontSize: 20.0);
+  final TextStyle defaultItem = TextStyle(fontSize: 20.0);
   final _newListForm = GlobalKey<FormState>();
   bool loadingNewList = false;
   final TextStyle _titleStyle = TextStyle(
@@ -61,8 +62,12 @@ class ListOverview extends StatelessWidget {
                       decoration: BoxDecoration(
                         gradient: LinearGradient(
                           begin: Alignment(0.0, -1.0),
-                          end: Alignment(0.0, -0.35),// 10% of the width, so there are ten blinds.
-                          colors: [Colors.black54, Colors.white], // whitish to gray
+                          end: Alignment(0.0, -0.35),
+                          // 10% of the width, so there are ten blinds.
+                          colors: [
+                            Colors.black54,
+                            Colors.white
+                          ], // whitish to gray
                           //tileMode: TileMode.clamp, // repeats the gradient over the canvas
                         ),
                       ),
@@ -71,8 +76,12 @@ class ListOverview extends StatelessWidget {
                       decoration: BoxDecoration(
                         gradient: LinearGradient(
                           begin: Alignment(0.0, -1.0),
-                          end: Alignment(0.0, -0.35),// 10% of the width, so there are ten blinds.
-                          colors: [Colors.black54, Colors.white], // whitish to gray
+                          end: Alignment(0.0, -0.35),
+                          // 10% of the width, so there are ten blinds.
+                          colors: [
+                            Colors.black54,
+                            Colors.white
+                          ], // whitish to gray
                           //tileMode: TileMode.clamp, // repeats the gradient over the canvas
                         ),
                       ),
@@ -80,29 +89,43 @@ class ListOverview extends StatelessWidget {
                     ListView(
                       physics: NeverScrollableScrollPhysics(),
                       children: <Widget>[
-
                         list.collection.length != 0
                             ? ClipRect(
-                          clipBehavior: Clip.hardEdge,
-                          child: Wrap(
-                            children: list.collection.map((item) {
-                              return itemTile(context, item, list, true);
-                            }).toList(),
-                          ),
-                        )
+                                clipBehavior: Clip.hardEdge,
+                                child: Wrap(
+                                  children: list.collection.map((item) {
+                                    return Row(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.center,
+                                      children: <Widget>[
+                                        Icon(item.complete
+                                            ? Icons.check_box
+                                            : Icons.check_box_outline_blank),
+                                        Text('\t\t\t\t'),
+                                        Text(
+                                          item.title,
+                                          style: item.complete
+                                              ? completedItem
+                                              : defaultItem,
+                                        ),
+                                      ],
+                                    );
+                                  }).toList(),
+                                ),
+                              )
                             : Opacity(
-                          opacity: 0.5,
-                          child: Column(
-                            mainAxisAlignment: MainAxisAlignment.center,
-                            crossAxisAlignment: CrossAxisAlignment.center,
-                            children: <Widget>[
-                              Icon(Icons.filter_none, size: 42),
-                              Divider(),
-                              Text('This list is empty',
-                                  style: TextStyle(fontSize: 24.0)),
-                            ],
-                          ),
-                        )
+                                opacity: 0.5,
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  children: <Widget>[
+                                    Icon(Icons.filter_none, size: 42),
+                                    Divider(),
+                                    Text('This list is empty',
+                                        style: TextStyle(fontSize: 24.0)),
+                                  ],
+                                ),
+                              )
                       ],
                     ),
                   ],

@@ -12,7 +12,7 @@ class ShareScreen extends StatelessWidget {
   ShareScreen(this.listId, this.userPrompt);
 
   Widget _buildUserTile(BuildContext context, ShoppingListEntity list,
-      String user, String currentUser) {
+      String user, String currentUser, ListsLoaded state) {
     if (list.owner == user) {
       return ListTile(
         title: Text(user),
@@ -32,7 +32,7 @@ class ShareScreen extends StatelessWidget {
             color: Colors.red,
             onTap: () {
               list.authorized.remove(user);
-              BlocProvider.of<ShoppingListBloc>(context).add(UpdateList(list, "data"));
+              BlocProvider.of<ShoppingListBloc>(context).add(UpdateList(list, "data", state.lists));
             },
           )
         ],
@@ -59,7 +59,7 @@ class ShareScreen extends StatelessWidget {
             BlocProvider.of<ShoppingListBloc>(context).getUser();
         return ListView(
           children: list.authorized.map((user) {
-            return _buildUserTile(context, list, user, currentUser);
+            return _buildUserTile(context, list, user, currentUser, state);
           }).toList(),
         );
       }

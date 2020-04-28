@@ -17,7 +17,7 @@ class AddEditScreen extends StatelessWidget {
       : item = ShoppingListItem.createNew(),
         adding = true;
 
-  void handleSave(BuildContext context, ShoppingListEntity currentList) {
+  void handleSave(BuildContext context, ShoppingListEntity currentList, List<ShoppingListEntity> lists) {
     if (_formKey.currentState.validate()) {
       _formKey.currentState.save();
       if (adding) {
@@ -32,7 +32,7 @@ class AddEditScreen extends StatelessWidget {
         currentItem.description = _description;
         currentItem.title = _title;
       }
-      BlocProvider.of<ShoppingListBloc>(context).add(UpdateList(currentList, "data"));
+      BlocProvider.of<ShoppingListBloc>(context).add(UpdateList(currentList, "data", lists));
       Navigator.of(context).pop();
     }
   }
@@ -54,7 +54,7 @@ class AddEditScreen extends StatelessWidget {
             floatingActionButton: FloatingActionButton(
               child: Icon(Icons.save),
               onPressed: () {
-                handleSave(context, currentList);
+                handleSave(context, currentList, lists);
               },
             ),
             appBar: AppBar(
@@ -67,7 +67,7 @@ class AddEditScreen extends StatelessWidget {
                 Divider(),
                 IconButton(
                   icon: Icon(Icons.check),
-                  onPressed: () => handleSave(context, currentList),
+                  onPressed: () => handleSave(context, currentList, lists),
                 ),
               ],
             ),

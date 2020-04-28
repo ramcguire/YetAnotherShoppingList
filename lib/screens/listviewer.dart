@@ -3,7 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:yetanothershoppinglist/blocs/blocs.dart';
 import 'package:yetanothershoppinglist/repositories/repositories.dart';
 import 'package:yetanothershoppinglist/screens/add_edit.dart';
-import 'package:yetanothershoppinglist/widgets/item_tile.dart';
+
 import 'package:yetanothershoppinglist/widgets/share.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:email_validator/email_validator.dart';
@@ -42,7 +42,7 @@ class _ListViewerState extends State<ListViewer> {
   }
 
   Widget editTitleDialog(
-      BuildContext context, ShoppingListEntity selectedList) {
+      BuildContext context, ShoppingListEntity selectedList, List<ShoppingListEntity> lists) {
     return AlertDialog(
       title: Text('Edit title'),
       content: Form(
@@ -52,7 +52,7 @@ class _ListViewerState extends State<ListViewer> {
           initialValue: selectedList.title,
           onSaved: (value) {
             BlocProvider.of<ShoppingListBloc>(context)
-                .add(UpdateList(selectedList.copyWith(value), "data"));
+                .add(UpdateList(selectedList.copyWith(value), "data", lists));
           },
           validator: (value) {
             if (value.isEmpty) {
@@ -85,7 +85,7 @@ class _ListViewerState extends State<ListViewer> {
     );
   }
 
-  Widget addUserDialog(BuildContext context, ShoppingListEntity selectedList) {
+  Widget addUserDialog(BuildContext context, ShoppingListEntity selectedList, List<ShoppingListEntity> lists) {
     return AlertDialog(
         title: Text('Add a user'),
         actions: <Widget>[
@@ -112,7 +112,7 @@ class _ListViewerState extends State<ListViewer> {
             onSaved: (value) {
               selectedList.authorized.add(value);
               BlocProvider.of<ShoppingListBloc>(context)
-                  .add(UpdateList(selectedList, "data"));
+                  .add(UpdateList(selectedList, "data", lists));
             },
             validator: (value) {
               if (value.isEmpty) {
@@ -135,7 +135,7 @@ class _ListViewerState extends State<ListViewer> {
     List<Widget> tabs = List<Widget>();
     tabs.add(tileList(context, selectedList, state));
     tabs.add(
-        ShareScreen(selectedList.id, addUserDialog(context, selectedList)));
+        ShareScreen(selectedList.id, addUserDialog(context, selectedList, state.lists)));
     return Scaffold(
         floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
         floatingActionButton: FloatingActionButton(
@@ -151,7 +151,7 @@ class _ListViewerState extends State<ListViewer> {
               showDialog(
                   context: context,
                   barrierDismissible: false,
-                  child: addUserDialog(context, selectedList));
+                  child: addUserDialog(context, selectedList, state.lists));
             }
           },
         ),
@@ -165,7 +165,7 @@ class _ListViewerState extends State<ListViewer> {
                 showDialog(
                     context: context,
                     barrierDismissible: false,
-                    child: editTitleDialog(context, selectedList));
+                    child: editTitleDialog(context, selectedList, state.lists));
               },
             )
           ],
@@ -195,13 +195,77 @@ class _ListViewerState extends State<ListViewer> {
   }
 
   void updateCheckbox(
-      BuildContext context, ShoppingListEntity list, ShoppingListItem item) {
+      BuildContext context, ShoppingListEntity list, ShoppingListItem item, ListsLoaded state) {
     item.complete = !item.complete;
-    BlocProvider.of<ShoppingListBloc>(context).add(UpdateList(list, "data"));
+    BlocProvider.of<ShoppingListBloc>(context).add(UpdateList(list, "data", state.lists));
+  }
+
+  Widget tileItem(BuildContext context, ShoppingListItem item, ShoppingListEntity list, ListsLoaded state) {
+    final SlidableController controller = SlidableController();
+    return Slidable(
+      controller: controller,
+      key: ValueKey(item.uid),
+      actionPane: SlidableDrawerActionPane(),
+      actionExtentRatio: 0.25,
+      dismissal: SlidableDismissal(
+        dragDismissible: false,
+        child: SlidableDrawerDismissal(),
+        onDismissed: (actionType) {
+          list.collection.remove(item);
+          BlocProvider.of<ShoppingListBloc>(context)
+              .add(UpdateList(list, "data", state.lists));
+        },
+      ),
+      actions: <Widget>[
+        IconSlideAction(
+          icon: Icons.delete,
+          color: Colors.red,
+          caption: 'Delete',
+          onTap: () {
+            controller.activeState.dismiss();
+          },
+        ),
+        IconSlideAction(
+          icon: Icons.edit,
+          color: Colors.green,
+          caption: 'Edit',
+          onTap: () {
+            Navigator.push(context, MaterialPageRoute(builder: (context) {
+              return AddEditScreen(list, item);
+            }));
+          },
+        ),
+      ],
+      child: item.description == ''
+          ? CheckboxListTile(
+        title: Text(item.title,
+            style: item.complete ? completedItem : TextStyle()),
+        value: item.complete,
+        onChanged: (value) {
+          item.complete = !item.complete;
+          BlocProvider.of<ShoppingListBloc>(context)
+              .add(UpdateList(list, "data", state.lists));
+        },
+        controlAffinity: ListTileControlAffinity.leading,
+      )
+          : CheckboxListTile(
+        title: Text(item.title,
+            style: item.complete ? completedItem : TextStyle()),
+        subtitle: Text(item.description),
+        value: item.complete,
+        onChanged: (value) {
+          item.complete = !item.complete;
+          BlocProvider.of<ShoppingListBloc>(context)
+              .add(UpdateList(list, "data", state.lists));
+        },
+        controlAffinity: ListTileControlAffinity.leading,
+      ),
+    );
   }
 
   Widget tileList(BuildContext context, ShoppingListEntity selectedList,
       ListsLoaded state) {
+    final SlidableController controller = SlidableController();
     return selectedList.collection.length != 0
         ? ReorderableListView(
             onReorder: (oldIndex, newIndex) {
@@ -212,10 +276,71 @@ class _ListViewerState extends State<ListViewer> {
                   selectedList.collection.removeAt(oldIndex);
               selectedList.collection.insert(newIndex, item);
               BlocProvider.of<ShoppingListBloc>(context)
-                  .add(UpdateListLocal(selectedList, state.lists, "data"));
+                  .add(UpdateList(selectedList, "data", state.lists));
             },
             children: selectedList.collection.map<Widget>((item) {
-              return itemTile(context, item, selectedList, false);
+              return Slidable(
+                controller: controller,
+                key: ValueKey(item.uid),
+                actionPane: SlidableDrawerActionPane(),
+                actionExtentRatio: 0.25,
+                dismissal: SlidableDismissal(
+                  dragDismissible: false,
+                  child: SlidableDrawerDismissal(),
+                  onDismissed: (actionType) {
+                    selectedList.collection.remove(item);
+                    BlocProvider.of<ShoppingListBloc>(context)
+                        .add(UpdateList(selectedList, "data", state.lists));
+                  },
+                ),
+                actions: <Widget>[
+                  IconSlideAction(
+                    icon: Icons.delete,
+                    color: Colors.red,
+                    caption: 'Delete',
+                    onTap: () {
+                      controller.activeState.dismiss();
+                    },
+                  ),
+                  IconSlideAction(
+                    icon: Icons.edit,
+                    color: Colors.green,
+                    caption: 'Edit',
+                    onTap: () {
+                      Navigator.push(context, MaterialPageRoute(builder: (context) {
+                        return AddEditScreen(selectedList, item);
+                      }));
+                    },
+                  ),
+                ],
+                child: item.description == ''
+                    ? CheckboxListTile(
+                  title: Text(item.title,
+                      style: item.complete ? completedItem : TextStyle()),
+                  value: item.complete,
+                  onChanged: (value) {
+                    item.complete = !item.complete;
+                    BlocProvider.of<ShoppingListBloc>(context)
+                        .add(UpdateList(selectedList, "data", state.lists));
+                  },
+                  controlAffinity: ListTileControlAffinity.leading,
+                )
+                    : CheckboxListTile(
+                  title: Text(item.title,
+                      style: item.complete ? completedItem : TextStyle()),
+                  subtitle: Text(item.description),
+                  value: item.complete,
+                  onChanged: (value) {
+                    item.complete = !item.complete;
+                    BlocProvider.of<ShoppingListBloc>(context)
+                        .add(UpdateList(selectedList, "data", state.lists));
+                    setState(() {
+
+                    });
+                  },
+                  controlAffinity: ListTileControlAffinity.leading,
+                ),
+              );
             }).toList())
         : Opacity(
             opacity: 0.5,
