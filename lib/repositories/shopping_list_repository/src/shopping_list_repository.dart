@@ -32,8 +32,18 @@ class ShoppingListRepository {
     return list.id;
   }
 
-   void updateShoppingList(ShoppingListEntity list, String field) {
+
+  void updateShoppingList(ShoppingListEntity list, String field) {
     print('updating $field field');
     documentCollection.document(list.id).setData(list.toDocument());
+
+
   }
+
+//  Future<void> updateShoppingList(ShoppingListEntity list,
+//      String field) async {
+//    print('updateing $field field');
+//    await list.reference.setData(list.toDocument());
+//    //await list.reference.updateData(list.toJson());
+//  }
 }

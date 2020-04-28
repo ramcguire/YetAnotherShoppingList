@@ -175,10 +175,10 @@ class ListViewer extends StatelessWidget {
         ),
         body: Material(
             child: PageView(
-          onPageChanged: onTabSelected,
-          controller: pageController,
-          children: tabs,
-        )));
+              onPageChanged: onTabSelected,
+              controller: pageController,
+              children: tabs,
+            )));
   }
 
   void updateCheckbox(
@@ -190,37 +190,37 @@ class ListViewer extends StatelessWidget {
   Widget tileList(BuildContext context, ShoppingListEntity selectedList) {
     return selectedList.collection.length != 0
         ? ReorderableListView(
-            onReorder: (oldIndex, newIndex) {
-              if (newIndex > oldIndex) {
-                newIndex -= 1;
-              }
-              final ShoppingListItem item =
-                  selectedList.collection.removeAt(oldIndex);
-              selectedList.collection.insert(newIndex, item);
-              BlocProvider.of<ShoppingListBloc>(context)
-                  .add(UpdateList(selectedList, "data"));
-            },
-            children: selectedList.collection.map<Widget>((item) {
-              return itemTile(context, item, selectedList);
-            }).toList())
+        onReorder: (oldIndex, newIndex) {
+          if (newIndex > oldIndex) {
+            newIndex -= 1;
+          }
+          final ShoppingListItem item =
+          selectedList.collection.removeAt(oldIndex);
+          selectedList.collection.insert(newIndex, item);
+          BlocProvider.of<ShoppingListBloc>(context)
+              .add(UpdateList(selectedList, "data"));
+        },
+        children: selectedList.collection.map<Widget>((item) {
+          return itemTile(context, item, selectedList);
+        }).toList())
         : Opacity(
-            opacity: 0.5,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: <Widget>[
-                Icon(Icons.filter_none, size: 42),
-                Divider(),
-                Text('This list is empty', style: TextStyle(fontSize: 24.0)),
-              ],
-            ),
-          );
+      opacity: 0.5,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: <Widget>[
+          Icon(Icons.filter_none, size: 42),
+          Divider(),
+          Text('This list is empty', style: TextStyle(fontSize: 24.0)),
+        ],
+      ),
+    );
   }
 
   Widget itemTile(
       BuildContext context, ShoppingListItem item, ShoppingListEntity list) {
     final TextStyle completedItem =
-        TextStyle(decoration: TextDecoration.lineThrough, fontSize: 20.0);
+    TextStyle(decoration: TextDecoration.lineThrough, fontSize: 20.0);
     final TextStyle defaultItem = TextStyle(fontSize: 20.0);
     final SlidableController controller = SlidableController();
 
@@ -260,24 +260,24 @@ class ListViewer extends StatelessWidget {
       ],
       child: item.description == ''
           ? CheckboxListTile(
-              title: Text(item.title,
-                  style: item.complete ? completedItem : TextStyle()),
-              value: item.complete,
-              onChanged: (value) {
-                updateCheckbox(context, list, item);
-              },
-              controlAffinity: ListTileControlAffinity.leading,
-            )
+        title: Text(item.title,
+            style: item.complete ? completedItem : TextStyle()),
+        value: item.complete,
+        onChanged: (value) {
+          updateCheckbox(context, list, item);
+        },
+        controlAffinity: ListTileControlAffinity.leading,
+      )
           : CheckboxListTile(
-              title: Text(item.title,
-                  style: item.complete ? completedItem : TextStyle()),
-              subtitle: Text(item.description),
-              value: item.complete,
-              onChanged: (value) {
-                updateCheckbox(context, list, item);
-              },
-              controlAffinity: ListTileControlAffinity.leading,
-            ),
+        title: Text(item.title,
+            style: item.complete ? completedItem : TextStyle()),
+        subtitle: Text(item.description),
+        value: item.complete,
+        onChanged: (value) {
+          updateCheckbox(context, list, item);
+        },
+        controlAffinity: ListTileControlAffinity.leading,
+      ),
     );
   }
 
@@ -302,7 +302,7 @@ class ListViewer extends StatelessWidget {
       builder: (context, state) {
         if (state is ListsLoaded) {
           ShoppingListEntity selectedList =
-              state.lists.firstWhere((list) => list.id == this.listId);
+          state.lists.firstWhere((list) => list.id == this.listId);
           return mainBody(context, selectedList, state);
         }
 

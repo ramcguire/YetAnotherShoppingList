@@ -153,9 +153,12 @@ class ListOverview extends StatelessWidget {
 
   void createNewList(BuildContext context, String listTitle) {
     loadingNewList = true;
-    ShoppingListBloc bloc = BlocProvider.of<ShoppingListBloc>(context);
-    bloc.getRepository().createNewShoppingList(listTitle, bloc.getUser()).then(
-        (_) => Navigator.push(context, MaterialPageRoute(builder: (context) {
+    String user = BlocProvider.of<ShoppingListBloc>(context).getUser();
+    BlocProvider.of<ShoppingListBloc>(context)
+        .getRepository()
+        .createNewShoppingList(listTitle, user)
+        .then((_) =>
+            Navigator.push(context, MaterialPageRoute(builder: (context) {
               return ListViewer(_);
             })));
   }

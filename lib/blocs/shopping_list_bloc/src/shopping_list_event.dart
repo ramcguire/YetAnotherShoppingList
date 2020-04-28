@@ -22,6 +22,32 @@ class AddList extends ShoppingListEvent {
   String toString() => 'AddList { list: $list }';
 }
 
+
+class CreateNewList extends ShoppingListEvent {
+  final String newListTitle;
+
+  const CreateNewList(this.newListTitle);
+
+  @override
+  List<Object> get props => [newListTitle];
+
+  @override
+  String toString() => 'CreateNewList { newListTitle: $newListTitle }';
+}
+
+class ViewList extends ShoppingListEvent {
+  final List<ShoppingListEntity> lists;
+  final String listId;
+
+  const ViewList(this.lists, this.listId);
+
+  @override
+  List<Object> get props => [lists, listId];
+
+  @override
+  String toString() => 'CreateNewList { listId: $listId }';
+}
+
 class UpdateList extends ShoppingListEvent {
   final ShoppingListEntity updatedList;
   final String updatedField;
@@ -29,7 +55,7 @@ class UpdateList extends ShoppingListEvent {
   const UpdateList(this.updatedList, this.updatedField);
 
   @override
-  List<Object> get props => [updatedList, updatedField];
+  List<Object> get props => [updatedList, updatedList];
 
   @override
   String toString() =>
