@@ -40,16 +40,16 @@ class ShoppingListEntity {
         categories = List<String>.generate(1, (int idx) => 'None'),
         id = null;
 
-  ShoppingListEntity copyWith(String title) {
+  ShoppingListEntity copyWith({String title, String id, String owner, List<ShoppingListItem> collection, DocumentReference reference, List<String> authorized, List<String> categories, DateTime creationDate}) {
     return ShoppingListEntity(
       title ?? this.title,
-      this.id,
-      this.owner,
-      this.collection,
-      this.reference,
-      this.authorized,
-      this.categories,
-      this.creationDate,
+      id ?? this.id,
+      owner ?? this.owner,
+      collection ?? this.collection,
+      reference ?? this.reference,
+      authorized ?? this.authorized,
+      categories ?? this.categories,
+      creationDate ?? this.creationDate,
     );
   }
 

@@ -3,42 +3,29 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:yetanothershoppinglist/blocs/blocs.dart';
 import 'package:yetanothershoppinglist/repositories/repositories.dart';
 import 'package:yetanothershoppinglist/screens/add_edit.dart';
-import 'package:yetanothershoppinglist/widgets/item_tile.dart';
 import 'package:yetanothershoppinglist/widgets/share.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:email_validator/email_validator.dart';
 
-class ListViewer extends StatefulWidget {
+class ListViewer extends StatelessWidget {
   final String listId;
-
-  ListViewer(this.listId);
-
-  @override
-  _ListViewerState createState() => _ListViewerState(listId);
-}
-
-class _ListViewerState extends State<ListViewer> {
   final _userForm = GlobalKey<FormState>();
   final _titleForm = GlobalKey<FormState>();
-  final String listId;
-  final TextStyle completedItem =
-      TextStyle(decoration: TextDecoration.lineThrough);
-  int _selectedIndex = 0;
-  bool isEditing = false;
   final PageController pageController = PageController(
     initialPage: 0,
     keepPage: true,
   );
 
-  _ListViewerState(this.listId);
+  int _selectedIdx = 0;
+
+  ListViewer(this.listId);
 
   void onTabSelected(int idx) {
-    setState(() {
-      _selectedIndex = idx;
-      pageController.animateToPage(idx,
-          duration: Duration(milliseconds: 500),
-          curve: Curves.fastLinearToSlowEaseIn);
-    });
+    pageController.animateToPage(idx,
+        duration: Duration(milliseconds: 500),
+        curve: Curves.fastLinearToSlowEaseIn);
+    _selectedIdx = idx;
+    print(pageController.page);
   }
 
   Widget editTitleDialog(
@@ -52,7 +39,7 @@ class _ListViewerState extends State<ListViewer> {
           initialValue: selectedList.title,
           onSaved: (value) {
             BlocProvider.of<ShoppingListBloc>(context)
-                .add(UpdateList(selectedList.copyWith(value), "data"));
+                .add(UpdateList(selectedList.copyWith(title: value), "data"));
           },
           validator: (value) {
             if (value.isEmpty) {
@@ -133,7 +120,7 @@ class _ListViewerState extends State<ListViewer> {
   Widget mainBody(BuildContext context, ShoppingListEntity selectedList,
       ListsLoaded state) {
     List<Widget> tabs = List<Widget>();
-    tabs.add(tileList(context, selectedList, state));
+    tabs.add(tileList(context, selectedList));
     tabs.add(
         ShareScreen(selectedList.id, addUserDialog(context, selectedList)));
     return Scaffold(
@@ -143,7 +130,7 @@ class _ListViewerState extends State<ListViewer> {
             Icons.add,
           ),
           onPressed: () {
-            if (_selectedIndex == 0) {
+            if (_selectedIdx == 0) {
               Navigator.push(context, MaterialPageRoute(builder: (context) {
                 return AddEditScreen.add(selectedList);
               }));
@@ -182,7 +169,7 @@ class _ListViewerState extends State<ListViewer> {
               title: Text('Share'),
             ),
           ],
-          currentIndex: _selectedIndex,
+          //currentIndex: _selectedIndex,
           selectedItemColor: Colors.blueAccent,
           onTap: onTabSelected,
         ),
@@ -200,8 +187,7 @@ class _ListViewerState extends State<ListViewer> {
     BlocProvider.of<ShoppingListBloc>(context).add(UpdateList(list, "data"));
   }
 
-  Widget tileList(BuildContext context, ShoppingListEntity selectedList,
-      ListsLoaded state) {
+  Widget tileList(BuildContext context, ShoppingListEntity selectedList) {
     return selectedList.collection.length != 0
         ? ReorderableListView(
             onReorder: (oldIndex, newIndex) {
@@ -215,7 +201,7 @@ class _ListViewerState extends State<ListViewer> {
                   .add(UpdateList(selectedList, "data"));
             },
             children: selectedList.collection.map<Widget>((item) {
-              return itemTile(context, item, selectedList, false);
+              return itemTile(context, item, selectedList);
             }).toList())
         : Opacity(
             opacity: 0.5,
@@ -229,6 +215,70 @@ class _ListViewerState extends State<ListViewer> {
               ],
             ),
           );
+  }
+
+  Widget itemTile(
+      BuildContext context, ShoppingListItem item, ShoppingListEntity list) {
+    final TextStyle completedItem =
+        TextStyle(decoration: TextDecoration.lineThrough, fontSize: 20.0);
+    final TextStyle defaultItem = TextStyle(fontSize: 20.0);
+    final SlidableController controller = SlidableController();
+
+    return Slidable(
+      controller: controller,
+      key: ValueKey(item.uid),
+      actionPane: SlidableDrawerActionPane(),
+      actionExtentRatio: 0.25,
+      dismissal: SlidableDismissal(
+        dragDismissible: false,
+        child: SlidableDrawerDismissal(),
+        onDismissed: (actionType) {
+          list.collection.remove(item);
+          BlocProvider.of<ShoppingListBloc>(context)
+              .add(UpdateList(list, "data"));
+        },
+      ),
+      actions: <Widget>[
+        IconSlideAction(
+          icon: Icons.delete,
+          color: Colors.red,
+          caption: 'Delete',
+          onTap: () {
+            controller.activeState.dismiss();
+          },
+        ),
+        IconSlideAction(
+          icon: Icons.edit,
+          color: Colors.green,
+          caption: 'Edit',
+          onTap: () {
+            Navigator.push(context, MaterialPageRoute(builder: (context) {
+              return AddEditScreen(list, item);
+            }));
+          },
+        ),
+      ],
+      child: item.description == ''
+          ? CheckboxListTile(
+              title: Text(item.title,
+                  style: item.complete ? completedItem : TextStyle()),
+              value: item.complete,
+              onChanged: (value) {
+                updateCheckbox(context, list, item);
+              },
+              controlAffinity: ListTileControlAffinity.leading,
+            )
+          : CheckboxListTile(
+              title: Text(item.title,
+                  style: item.complete ? completedItem : TextStyle()),
+              subtitle: Text(item.description),
+              value: item.complete,
+              onChanged: (value) {
+                updateCheckbox(context, list, item);
+              },
+              controlAffinity: ListTileControlAffinity.leading,
+            ),
+    );
   }
 
 //      return AnimatedSwitcher(
@@ -252,7 +302,7 @@ class _ListViewerState extends State<ListViewer> {
       builder: (context, state) {
         if (state is ListsLoaded) {
           ShoppingListEntity selectedList =
-              state.lists.firstWhere((list) => list.id == this.widget.listId);
+              state.lists.firstWhere((list) => list.id == this.listId);
           return mainBody(context, selectedList, state);
         }
 

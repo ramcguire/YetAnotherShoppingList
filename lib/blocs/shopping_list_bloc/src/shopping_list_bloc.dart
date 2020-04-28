@@ -49,10 +49,7 @@ class ShoppingListBloc extends Bloc<ShoppingListEvent, ShoppingListState> {
   }
 
   Stream<ShoppingListState> _mapDeleteListToState(DeleteList event) async* {
-    List<ShoppingListEntity> localLists = event.lists;
-    localLists.removeWhere((i) => i.id == event.list.id);
     _listRepository.removeShoppingList(event.list);
-    yield ListsLoaded(localLists);
   }
 
   Stream<ShoppingListState> _mapListsUpdatedToState(ListsUpdated event) async* {

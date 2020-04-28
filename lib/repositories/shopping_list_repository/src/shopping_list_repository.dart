@@ -4,8 +4,9 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 
 class ShoppingListRepository {
   final Firestore _firestore;
+  final documentCollection = Firestore.instance.collection('lists');
 
-  const ShoppingListRepository(this._firestore);
+  ShoppingListRepository(this._firestore);
 
   Stream<List<ShoppingListEntity>> shoppingLists(String user) {
     return _firestore
@@ -20,8 +21,7 @@ class ShoppingListRepository {
   }
 
   Future<String> createNewShoppingList(String listTitle, String user) async {
-    DocumentReference newList = await _firestore
-        .collection('lists')
+    DocumentReference newList = await documentCollection
         .add(ShoppingListEntity.createNew(listTitle, user).toDocument());
     print('created a new Document with ID: ${newList.documentID}');
     return newList.documentID;
@@ -34,6 +34,6 @@ class ShoppingListRepository {
 
    void updateShoppingList(ShoppingListEntity list, String field) {
     print('updating $field field');
-    list.reference.setData(list.toDocument());
+    documentCollection.document(list.id).setData(list.toDocument());
   }
 }

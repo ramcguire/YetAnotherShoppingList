@@ -5,7 +5,6 @@ import 'package:yetanothershoppinglist/blocs/blocs.dart';
 import 'package:yetanothershoppinglist/repositories/repositories.dart';
 import 'package:yetanothershoppinglist/screens/screens.dart';
 import 'package:yetanothershoppinglist/widgets/drawer.dart';
-import 'package:yetanothershoppinglist/widgets/item_tile.dart';
 
 final double _cardElevation = 10.0; // for ease of "tweaking", remove later
 
@@ -68,29 +67,43 @@ class ListOverview extends StatelessWidget {
                       //Spacer(),
                       list.collection.length != 0
                           ? Container(
-                        height: 200,
-                        child: ListView.builder(
-                          physics: NeverScrollableScrollPhysics(),
-                          itemCount: list.collection.length,
-                          itemBuilder: (context, idx) {
-                            return itemTile(
-                                context, list.collection[idx], list, true);
-                          },
-                        ),
-                      )
+                              height: 200,
+                              child: ListView.builder(
+                                physics: NeverScrollableScrollPhysics(),
+                                itemCount: list.collection.length,
+                                itemBuilder: (context, idx) {
+                                  return Row(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.center,
+                                    children: <Widget>[
+                                      Icon(list.collection[idx].complete
+                                          ? Icons.check_box
+                                          : Icons.check_box_outline_blank),
+                                      Text('\t\t\t\t'),
+                                      Text(
+                                        list.collection[idx].title,
+                                        style: list.collection[idx].complete
+                                            ? _completeItem
+                                            : _itemStyle,
+                                      ),
+                                    ],
+                                  );
+                                },
+                              ),
+                            )
                           : Opacity(
-                        opacity: 0.5,
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          crossAxisAlignment: CrossAxisAlignment.center,
-                          children: <Widget>[
-                            Icon(Icons.filter_none, size: 42),
-                            Divider(),
-                            Text('This list is empty',
-                                style: TextStyle(fontSize: 24.0)),
-                          ],
-                        ),
-                      ),
+                              opacity: 0.5,
+                              child: Column(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                crossAxisAlignment: CrossAxisAlignment.center,
+                                children: <Widget>[
+                                  Icon(Icons.filter_none, size: 42),
+                                  Divider(),
+                                  Text('This list is empty',
+                                      style: TextStyle(fontSize: 24.0)),
+                                ],
+                              ),
+                            ),
                     ],
                   )
                 ],
