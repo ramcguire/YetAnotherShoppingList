@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:yetanothershoppinglist/repositories/repositories.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:yetanothershoppinglist/blocs/blocs.dart';
-import 'package:email_validator/email_validator.dart';
 
 class EditTitle extends StatelessWidget {
   final ShoppingListEntity currentList;

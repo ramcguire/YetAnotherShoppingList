@@ -24,8 +24,7 @@ class ListViewer extends StatelessWidget {
     print(pageController.page);
   }
 
-  Widget mainBody(BuildContext context, ShoppingListEntity selectedList,
-      ListsLoaded state) {
+  Widget mainBody(BuildContext context, ShoppingListEntity selectedList) {
     List<Widget> tabs = List<Widget>();
     tabs.add(tileList(context, selectedList));
     tabs.add(ShareScreen(selectedList.id, AddUser(selectedList)));
@@ -81,57 +80,67 @@ class ListViewer extends StatelessWidget {
         ),
         body: Material(
             child: PageView(
-          onPageChanged: onTabSelected,
-          controller: pageController,
-          children: tabs,
-        )));
+              onPageChanged: onTabSelected,
+              controller: pageController,
+              children: tabs,
+            )));
   }
 
   Widget tileList(BuildContext context, ShoppingListEntity selectedList) {
     return selectedList.collection.length != 0
         ? ReorderableListView(
-            onReorder: (oldIndex, newIndex) {
-              if (newIndex > oldIndex) {
-                newIndex -= 1;
-              }
-              final ShoppingListItem item =
-                  selectedList.collection.removeAt(oldIndex);
-              selectedList.collection.insert(newIndex, item);
-              BlocProvider.of<ShoppingListBloc>(context)
-                  .add(UpdateList(selectedList, "data"));
-            },
-            children: selectedList.collection.map<Widget>((item) {
-              return ListItem(
-                  item: item,
-                  currentList: selectedList,
-                  key: ValueKey(item.uid));
-            }).toList())
+        onReorder: (oldIndex, newIndex) {
+          if (newIndex > oldIndex) {
+            newIndex -= 1;
+          }
+          final ShoppingListItem item =
+          selectedList.collection.removeAt(oldIndex);
+          selectedList.collection.insert(newIndex, item);
+          BlocProvider.of<ShoppingListBloc>(context)
+              .add(UpdateList(selectedList, "data"));
+        },
+        children: selectedList.collection.map<Widget>((item) {
+          return ListItem(
+              item: item,
+              currentList: selectedList,
+              key: ValueKey(item.uid));
+        }).toList())
         : Opacity(
-            opacity: 0.5,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.center,
-              children: <Widget>[
-                Icon(Icons.filter_none, size: 42),
-                Divider(),
-                Text('This list is empty', style: TextStyle(fontSize: 24.0)),
-              ],
-            ),
-          );
+      opacity: 0.5,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        crossAxisAlignment: CrossAxisAlignment.center,
+        children: <Widget>[
+          Icon(Icons.filter_none, size: 42),
+          Divider(),
+          Text('This list is empty', style: TextStyle(fontSize: 24.0)),
+        ],
+      ),
+    );
   }
 
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<ShoppingListBloc, ShoppingListState>(
+      condition: (previousState, state) {
+        if (previousState is ListsLoaded && state is ListsLoaded) {
+          ShoppingListEntity prevList = previousState.lists.firstWhere((i) =>
+          i.id == this.listId);
+          ShoppingListEntity curList = state.lists.firstWhere((i) =>
+          i.id == this.listId);
+          return !(prevList.collection == curList.collection);
+        }
+        return true;
+      },
       builder: (context, state) {
         if (state is ListsLoaded) {
           ShoppingListEntity selectedList =
-              state.lists.firstWhere((list) => list.id == this.listId);
-          return mainBody(context, selectedList, state);
+          state.lists.firstWhere((list) => list.id == this.listId);
+          return mainBody(context, selectedList);
         }
 
         Navigator.of(context).pop();
-        return null;
+        return Container();
       },
     );
   }

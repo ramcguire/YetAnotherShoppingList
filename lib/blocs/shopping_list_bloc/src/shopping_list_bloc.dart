@@ -54,9 +54,7 @@ class ShoppingListBloc extends Bloc<ShoppingListEvent, ShoppingListState> {
 
   Stream<ShoppingListState> _mapCreateNewListToState(
       CreateNewList event) async* {
-    // need to implement this in ShoppingListEntity and ShoppingListRepository
-    String newListId =
-        await _listRepository.createNewShoppingList(event.newListTitle, _user);
+    await _listRepository.createNewShoppingList(event.newListTitle, _user);
   }
 
   Stream<ShoppingListState> _mapUpdateListToState(UpdateList event) async* {

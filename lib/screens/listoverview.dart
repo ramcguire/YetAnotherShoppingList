@@ -60,7 +60,7 @@ class ListOverview extends StatelessWidget {
                           gradient: LinearGradient(
                             begin: Alignment(0.0, -1.0),
                             end: Alignment(0.0, 0.0),
-                            colors: [Colors.black, Colors.black12],
+                            colors: [Colors.blue, Colors.black12],
                           ),
                         ),
                       ),
