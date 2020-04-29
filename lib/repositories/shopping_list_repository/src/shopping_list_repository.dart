@@ -28,12 +28,12 @@ class ShoppingListRepository {
   }
 
   Future<String> removeShoppingList(ShoppingListEntity list) async {
-    await list.reference.delete();
+    list.reference.delete();
     return list.id;
   }
 
   Future<void> updateShoppingList(ShoppingListEntity list, String field) async {
-    print('updateing $field field');
+    print('updating $field field');
     await list.reference.setData(list.toDocument());
     //await list.reference.updateData(list.toJson());
   }

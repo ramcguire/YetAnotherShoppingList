@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:yetanothershoppinglist/blocs/blocs.dart';
 import 'package:yetanothershoppinglist/repositories/repositories.dart';
 import 'package:yetanothershoppinglist/screens/screens.dart';
 import 'package:yetanothershoppinglist/widgets/drawer.dart';
-import 'package:yetanothershoppinglist/widgets/item_tile.dart';
 
 final double _cardElevation = 10.0; // for ease of "tweaking", remove later
 
@@ -14,7 +12,7 @@ class ListOverview extends StatelessWidget {
   final _newListForm = GlobalKey<FormState>();
   bool loadingNewList = false;
   final TextStyle _titleStyle = TextStyle(
-    fontSize: 40,
+    fontSize: 36,
   );
   final TextStyle _itemStyle = TextStyle(fontSize: 20);
   final TextStyle _completeItem = TextStyle(
@@ -22,33 +20,109 @@ class ListOverview extends StatelessWidget {
     decoration: TextDecoration.lineThrough,
   );
 
-  Widget _buildListOverview(BuildContext context, ShoppingListEntity list) {
+  Widget _buildListOverview(
+      BuildContext context, ShoppingListEntity list, ListsLoaded state) {
     return SizedBox(
-      height: 400,
+      height: 250,
       child: Material(
-        child: InkWell(
-          onTap: () {
-            print('picked list with id ${list.id}');
-            Navigator.push(context, MaterialPageRoute(builder: (context) {
-              return ListViewer(list.id);
-            }));
+        child: Dismissible(
+          key: ValueKey(list),
+          onDismissed: (direction) {
+            BlocProvider.of<ShoppingListBloc>(context)
+                .add(DeleteList(list, state.lists));
+            Scaffold.of(context).showSnackBar(SnackBar(
+              content: Text('List ${list.title} dismissed'),
+            ));
           },
-          child: Card(
-            elevation: _cardElevation,
-            child: Wrap(
-              children: <Widget>[
-                Text(
-                  list.title,
-                  style: _titleStyle,
-                  overflow: TextOverflow.ellipsis,
-                ),
-                Divider(),
-              Wrap(
-                children: list.collection.map((item) {
-                  return itemTile(context, item, list, true);
-                }).toList(),
-              )
-              ],
+          child: InkWell(
+            onTap: () {
+              print('picked list with id ${list.id}');
+              Navigator.push(context, MaterialPageRoute(builder: (context) {
+                return ListViewer(list.id);
+              }));
+            },
+            child: Card(
+              elevation: _cardElevation,
+              child: Stack(
+                children: <Widget>[
+                  Column(
+                    //overflow: Overflow.clip,
+                    children: <Widget>[
+                      Text(
+                        list.title,
+                        style: _titleStyle,
+                        overflow: TextOverflow.ellipsis,
+                        textAlign: TextAlign.center,
+                      ),
+                      Container(),
+                      Container(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment(0.0, -1.0),
+                            end: Alignment(0.0, 0.0),
+                            colors: [Colors.black, Colors.black12],
+                          ),
+                        ),
+                      ),
+                      //Spacer(),
+                      ConstrainedBox(
+                        constraints: BoxConstraints(
+                          maxHeight: 150,
+                        ),
+                        child: list.collection.length != 0
+                            ? ListView.builder(
+                                physics: NeverScrollableScrollPhysics(),
+                                itemCount: list.collection.length,
+                                itemBuilder: (context, idx) {
+                                  return Row(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.center,
+                                    children: <Widget>[
+                                      Icon(list.collection[idx].complete
+                                          ? Icons.check_box
+                                          : Icons.check_box_outline_blank),
+                                      Text('\t\t\t\t'),
+                                      Text(
+                                        list.collection[idx].title,
+                                        style: list.collection[idx].complete
+                                            ? _completeItem
+                                            : _itemStyle,
+                                      ),
+                                    ],
+                                  );
+                                },
+                              )
+                            : Opacity(
+                                opacity: 0.5,
+                                child: Column(
+                                  mainAxisAlignment: MainAxisAlignment.center,
+                                  crossAxisAlignment: CrossAxisAlignment.center,
+                                  children: <Widget>[
+                                    Icon(Icons.filter_none, size: 42),
+                                    Divider(),
+                                    Text('This list is empty',
+                                        style: TextStyle(fontSize: 24.0)),
+                                  ],
+                                ),
+                              ),
+                      ),
+                      Expanded(
+                          child: Stack(
+                        children: <Widget>[
+                          Container(
+                            foregroundDecoration: BoxDecoration(
+                                gradient: LinearGradient(
+                              begin: Alignment.bottomCenter,
+                              end: Alignment.topCenter,
+                              colors: [Colors.black, Colors.white],
+                            )),
+                          ),
+                        ],
+                      )),
+                    ],
+                  )
+                ],
+              ),
             ),
           ),
         ),
@@ -83,7 +157,8 @@ class ListOverview extends StatelessWidget {
         ),
         SliverList(
           delegate: SliverChildBuilderDelegate(
-            (context, idx) => _buildListOverview(context, state.lists[idx]),
+            (context, idx) =>
+                _buildListOverview(context, state.lists[idx], state),
             childCount: state.lists.length,
           ),
         )
@@ -102,7 +177,7 @@ class ListOverview extends StatelessWidget {
 
   Widget newListForm(BuildContext context) {
     return AlertDialog(
-        title: Text('Add a user'),
+        title: Text('Start a new list'),
         actions: <Widget>[
           FlatButton(
             onPressed: () {
