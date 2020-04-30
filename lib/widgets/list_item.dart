@@ -9,9 +9,8 @@ class ListItem extends StatelessWidget {
   final ShoppingListItem item;
   final ShoppingListEntity currentList;
   final SlidableController controller = SlidableController();
-  final TextStyle _default = TextStyle(fontSize: 20);
+  final TextStyle _default = TextStyle();
   final TextStyle _complete = TextStyle(
-    fontSize: 20,
     decoration: TextDecoration.lineThrough,
   );
 
@@ -33,7 +32,7 @@ class ListItem extends StatelessWidget {
       controller: controller,
       key: ValueKey(item.uid),
       actionPane: SlidableDrawerActionPane(),
-      actionExtentRatio: 0.25,
+      actionExtentRatio: 0.2,
       dismissal: SlidableDismissal(
         dragDismissible: false,
         child: SlidableDrawerDismissal(),

@@ -5,23 +5,33 @@ import 'package:yetanothershoppinglist/repositories/repositories.dart';
 import 'package:yetanothershoppinglist/screens/screens.dart';
 import 'package:yetanothershoppinglist/widgets/widgets.dart';
 
-class ListViewer extends StatelessWidget {
+class ListViewer extends StatefulWidget {
+  final String listId;
+
+  ListViewer(this.listId);
+
+  @override
+  _ListViewerState createState() => _ListViewerState(listId);
+}
+
+class _ListViewerState extends State<ListViewer> {
   final String listId;
   final PageController pageController = PageController(
     initialPage: 0,
     keepPage: true,
   );
 
+  _ListViewerState(this.listId);
+
   int _selectedIdx = 0;
 
-  ListViewer(this.listId);
-
   void onTabSelected(int idx) {
-    pageController.animateToPage(idx,
-        duration: Duration(milliseconds: 500),
-        curve: Curves.fastLinearToSlowEaseIn);
-    _selectedIdx = idx;
-    print(pageController.page);
+    setState(() {
+      pageController.animateToPage(idx,
+          duration: Duration(milliseconds: 500),
+          curve: Curves.fastLinearToSlowEaseIn);
+      _selectedIdx = idx;
+    });
   }
 
   Widget mainBody(BuildContext context, ShoppingListEntity selectedList) {
@@ -74,49 +84,49 @@ class ListViewer extends StatelessWidget {
               title: Text('Share'),
             ),
           ],
-          //currentIndex: _selectedIndex,
+          currentIndex: _selectedIdx,
           selectedItemColor: Colors.blueAccent,
           onTap: onTabSelected,
         ),
         body: Material(
             child: PageView(
-              onPageChanged: onTabSelected,
-              controller: pageController,
-              children: tabs,
-            )));
+          onPageChanged: onTabSelected,
+          controller: pageController,
+          children: tabs,
+        )));
   }
 
   Widget tileList(BuildContext context, ShoppingListEntity selectedList) {
     return selectedList.collection.length != 0
         ? ReorderableListView(
-        onReorder: (oldIndex, newIndex) {
-          if (newIndex > oldIndex) {
-            newIndex -= 1;
-          }
-          final ShoppingListItem item =
-          selectedList.collection.removeAt(oldIndex);
-          selectedList.collection.insert(newIndex, item);
-          BlocProvider.of<ShoppingListBloc>(context)
-              .add(UpdateList(selectedList, "data"));
-        },
-        children: selectedList.collection.map<Widget>((item) {
-          return ListItem(
-              item: item,
-              currentList: selectedList,
-              key: ValueKey(item.uid));
-        }).toList())
+            onReorder: (oldIndex, newIndex) {
+              if (newIndex > oldIndex) {
+                newIndex -= 1;
+              }
+              final ShoppingListItem item =
+                  selectedList.collection.removeAt(oldIndex);
+              selectedList.collection.insert(newIndex, item);
+              BlocProvider.of<ShoppingListBloc>(context)
+                  .add(UpdateList(selectedList, "data"));
+            },
+            children: selectedList.collection.map<Widget>((item) {
+              return ListItem(
+                  item: item,
+                  currentList: selectedList,
+                  key: ValueKey(item.uid));
+            }).toList())
         : Opacity(
-      opacity: 0.5,
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        crossAxisAlignment: CrossAxisAlignment.center,
-        children: <Widget>[
-          Icon(Icons.filter_none, size: 42),
-          Divider(),
-          Text('This list is empty', style: TextStyle(fontSize: 24.0)),
-        ],
-      ),
-    );
+            opacity: 0.5,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: <Widget>[
+                Icon(Icons.filter_none, size: 42),
+                Divider(),
+                Text('This list is empty', style: TextStyle(fontSize: 24.0)),
+              ],
+            ),
+          );
   }
 
   @override
@@ -124,10 +134,10 @@ class ListViewer extends StatelessWidget {
     return BlocBuilder<ShoppingListBloc, ShoppingListState>(
       condition: (previousState, state) {
         if (previousState is ListsLoaded && state is ListsLoaded) {
-          ShoppingListEntity prevList = previousState.lists.firstWhere((i) =>
-          i.id == this.listId);
-          ShoppingListEntity curList = state.lists.firstWhere((i) =>
-          i.id == this.listId);
+          ShoppingListEntity prevList =
+              previousState.lists.firstWhere((i) => i.id == this.widget.listId);
+          ShoppingListEntity curList =
+              state.lists.firstWhere((i) => i.id == this.widget.listId);
           return !(prevList.collection == curList.collection);
         }
         return true;
@@ -135,7 +145,7 @@ class ListViewer extends StatelessWidget {
       builder: (context, state) {
         if (state is ListsLoaded) {
           ShoppingListEntity selectedList =
-          state.lists.firstWhere((list) => list.id == this.listId);
+              state.lists.firstWhere((list) => list.id == this.widget.listId);
           return mainBody(context, selectedList);
         }
 

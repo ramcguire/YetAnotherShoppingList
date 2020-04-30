@@ -130,40 +130,46 @@ class ListOverview extends StatelessWidget {
     );
   }
 
-  String multiLineString(ShoppingListEntity list) {
-    StringBuffer sb = StringBuffer();
-    list.collection.forEach((item) {
-      sb.write(String.fromCharCode(0x2022) + '\t' + item.title + '\n');
-    });
-    return sb.toString();
-  }
-
   Widget _buildListCards(BuildContext context, ListsLoaded state) {
     List<ShoppingListEntity> lists = state.lists;
-    return CustomScrollView(
-      slivers: <Widget>[
-        SliverAppBar(
-          title: Text('ListOverview'),
-          actions: <Widget>[
-            IconButton(
-              icon: Icon(Icons.exit_to_app),
-              onPressed: () {
-                BlocProvider.of<AuthenticationBloc>(context).add(
-                  LoggedOut(),
-                );
-              },
+    return state.lists.length == 0
+        ? Opacity(
+            opacity: 0.5,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: <Widget>[
+                Icon(Icons.insert_comment, size: 42),
+                Divider(),
+                Text('No lists found, create one now',
+                    style: TextStyle(fontSize: 24.0)),
+              ],
             ),
-          ],
-        ),
-        SliverList(
-          delegate: SliverChildBuilderDelegate(
-            (context, idx) =>
-                _buildListOverview(context, state.lists[idx], state),
-            childCount: state.lists.length,
-          ),
-        )
-      ],
-    );
+          )
+        : CustomScrollView(
+            slivers: <Widget>[
+              SliverAppBar(
+                title: Text('ListOverview'),
+                actions: <Widget>[
+                  IconButton(
+                    icon: Icon(Icons.exit_to_app),
+                    onPressed: () {
+                      BlocProvider.of<AuthenticationBloc>(context).add(
+                        LoggedOut(),
+                      );
+                    },
+                  ),
+                ],
+              ),
+              SliverList(
+                delegate: SliverChildBuilderDelegate(
+                  (context, idx) =>
+                      _buildListOverview(context, state.lists[idx], state),
+                  childCount: state.lists.length,
+                ),
+              )
+            ],
+          );
   }
 
   void createNewList(BuildContext context, String listTitle) {
