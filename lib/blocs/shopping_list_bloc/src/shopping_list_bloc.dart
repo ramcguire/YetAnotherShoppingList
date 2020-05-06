@@ -30,8 +30,6 @@ class ShoppingListBloc extends Bloc<ShoppingListEvent, ShoppingListState> {
       yield* _mapDeleteListToState(event);
     } else if (event is ListsUpdated) {
       yield* _mapListsUpdatedToState(event);
-    } else if (event is CreateNewList) {
-      yield* _mapCreateNewListToState(event);
     }
   }
 
@@ -45,7 +43,6 @@ class ShoppingListBloc extends Bloc<ShoppingListEvent, ShoppingListState> {
           (lists) => add(ListsUpdated(lists)),
         );
   }
-
   Stream<ShoppingListState> _mapCreateNewListToState(
       CreateNewList event) async* {
     await _listRepository.createNewShoppingList(event.newListTitle, _user);
@@ -64,10 +61,15 @@ class ShoppingListBloc extends Bloc<ShoppingListEvent, ShoppingListState> {
         yield ListsLoaded(currentLists);
       }
     }
+
   }
 
   Stream<ShoppingListState> _mapDeleteListToState(DeleteList event) async* {
+    List<ShoppingListEntity> localLists = event.lists;
+    localLists.removeWhere((i) => i.id == event.list.id);
     _listRepository.removeShoppingList(event.list);
+
+    add(ListsUpdated(localLists));
   }
 
   Stream<ShoppingListState> _mapListsUpdatedToState(ListsUpdated event) async* {

@@ -5,6 +5,7 @@ import 'package:yetanothershoppinglist/repositories/repositories.dart';
 import 'package:yetanothershoppinglist/screens/screens.dart';
 import 'package:yetanothershoppinglist/widgets/widgets.dart';
 
+
 class ListViewer extends StatefulWidget {
   final String listId;
 
@@ -35,6 +36,7 @@ class _ListViewerState extends State<ListViewer> {
   }
 
   Widget mainBody(BuildContext context, ShoppingListEntity selectedList) {
+
     return Scaffold(
         floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
         floatingActionButton: FloatingActionButton(
@@ -51,6 +53,7 @@ class _ListViewerState extends State<ListViewer> {
                   context: context,
                   barrierDismissible: false,
                   child: AddUser(selectedList));
+
             }
           },
         ),
@@ -95,7 +98,6 @@ class _ListViewerState extends State<ListViewer> {
           ],
         )));
   }
-
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<ShoppingListBloc, ShoppingListState>(

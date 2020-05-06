@@ -72,6 +72,10 @@ class ShoppingListEntity {
         'created_at': creationDate.millisecondsSinceEpoch,
       };
 
+  FieldValue updateData() => FieldValue.arrayUnion(collection.map((item) {
+    return item.toJson();
+  }).toList());
+
   Map<String, dynamic> toDocument() {
     return {
       'title': title,

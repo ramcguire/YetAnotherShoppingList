@@ -36,5 +36,6 @@ class ShoppingListRepository {
     print('updating $field field');
     await list.reference.setData(list.toDocument());
     //await list.reference.updateData(list.toJson());
+
   }
 }

@@ -9,6 +9,9 @@ import 'package:yetanothershoppinglist/widgets/drawer.dart';
 final double _cardElevation = 10.0; // for ease of "tweaking", remove later
 
 class ListOverview extends StatelessWidget {
+  final TextStyle completedItem =
+      TextStyle(decoration: TextDecoration.lineThrough, fontSize: 20.0);
+  final TextStyle defaultItem = TextStyle(fontSize: 20.0);
   final _newListForm = GlobalKey<FormState>();
   bool loadingNewList = false;
   final TextStyle _titleStyle = TextStyle(
@@ -22,6 +25,7 @@ class ListOverview extends StatelessWidget {
 
   Widget _buildListOverview(
       BuildContext context, ShoppingListEntity list, ListsLoaded state) {
+
     return SizedBox(
       height: 250,
       child: Material(
@@ -91,6 +95,7 @@ class ListOverview extends StatelessWidget {
                                     ],
                                   );
                                 },
+
                               )
                             : Opacity(
                                 opacity: 0.5,
@@ -104,6 +109,7 @@ class ListOverview extends StatelessWidget {
                                         style: TextStyle(fontSize: 24.0)),
                                   ],
                                 ),
+
                               ),
                       ),
                       Expanded(
