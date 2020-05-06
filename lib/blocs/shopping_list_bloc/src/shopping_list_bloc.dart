@@ -24,8 +24,6 @@ class ShoppingListBloc extends Bloc<ShoppingListEvent, ShoppingListState> {
   Stream<ShoppingListState> mapEventToState(ShoppingListEvent event) async* {
     if (event is LoadLists) {
       yield* _mapLoadListsToState();
-    } else if (event is AddList) {
-      yield* _mapAddListToState(event);
     } else if (event is UpdateList) {
       yield* _mapUpdateListToState(event);
     } else if (event is DeleteList) {
@@ -48,10 +46,6 @@ class ShoppingListBloc extends Bloc<ShoppingListEvent, ShoppingListState> {
         );
   }
 
-  Stream<ShoppingListState> _mapAddListToState(AddList event) async* {
-    // need to implement this in ShoppingListEntity and ShoppingListRepository
-  }
-
   Stream<ShoppingListState> _mapCreateNewListToState(
       CreateNewList event) async* {
     await _listRepository.createNewShoppingList(event.newListTitle, _user);
@@ -60,6 +54,16 @@ class ShoppingListBloc extends Bloc<ShoppingListEvent, ShoppingListState> {
   Stream<ShoppingListState> _mapUpdateListToState(UpdateList event) async* {
     await _listRepository.updateShoppingList(
         event.updatedList, event.updatedField);
+
+    ShoppingListState currentState = state;
+    if (state is ListsLoaded) {
+      List<ShoppingListEntity> currentLists = (state as ListsLoaded).lists;
+      int idx = currentLists.indexWhere((i) => i.id == event.updatedList.id);
+      if (idx != -1) {
+        currentLists[idx] = event.updatedList;
+        yield ListsLoaded(currentLists);
+      }
+    }
   }
 
   Stream<ShoppingListState> _mapDeleteListToState(DeleteList event) async* {
