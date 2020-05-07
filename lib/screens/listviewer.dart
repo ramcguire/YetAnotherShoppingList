@@ -46,7 +46,7 @@ class _ListViewerState extends State<ListViewer> {
           onPressed: () {
             if (_selectedIdx == 0) {
               Navigator.push(context, MaterialPageRoute(builder: (context) {
-                return AddEditScreen.add(selectedList);
+                return AddEditItem.add(selectedList);
               }));
             } else {
               showDialog(
@@ -115,8 +115,6 @@ class _ListViewerState extends State<ListViewer> {
           }
           return mainBody(context, lists[idx]);
         }
-
-        //Navigator.pop();
         return Container();
       },
     );

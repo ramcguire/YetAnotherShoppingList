@@ -3,7 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_slidable/flutter_slidable.dart';
 import 'package:yetanothershoppinglist/blocs/blocs.dart';
 import 'package:yetanothershoppinglist/repositories/repositories.dart';
-import 'package:yetanothershoppinglist/screens/add_edit.dart';
+import 'package:yetanothershoppinglist/screens/add_edit_item.dart';
 
 class ListItem extends StatelessWidget {
   final ShoppingListItem item;
@@ -57,7 +57,7 @@ class ListItem extends StatelessWidget {
           caption: 'Edit',
           onTap: () {
             Navigator.push(context, MaterialPageRoute(builder: (context) {
-              return AddEditScreen(currentList, item);
+              return AddEditItem(currentList, item);
             }));
           },
         ),

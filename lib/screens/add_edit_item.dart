@@ -3,7 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:yetanothershoppinglist/repositories/repositories.dart';
 import 'package:yetanothershoppinglist/blocs/blocs.dart';
 
-class AddEditScreen extends StatelessWidget {
+class AddEditItem extends StatelessWidget {
   final ShoppingListEntity list;
   final bool adding;
   final _formKey = GlobalKey<FormState>();
@@ -11,9 +11,9 @@ class AddEditScreen extends StatelessWidget {
   String _description;
   String _title;
 
-  AddEditScreen(this.list, this.item) : adding = false;
+  AddEditItem(this.list, this.item) : adding = false;
 
-  AddEditScreen.add(this.list)
+  AddEditItem.add(this.list)
       : item = ShoppingListItem.createNew(),
         adding = true;
 
@@ -32,7 +32,7 @@ class AddEditScreen extends StatelessWidget {
         currentItem.description = _description;
         currentItem.title = _title;
       }
-      BlocProvider.of<ShoppingListBloc>(context).add(UpdateList(currentList, "data", lists));
+      BlocProvider.of<ShoppingListBloc>(context).add(UpdateList(currentList, "data"));
       Navigator.of(context).pop();
     }
   }

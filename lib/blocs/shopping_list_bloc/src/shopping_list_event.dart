@@ -33,15 +33,13 @@ class ViewList extends ShoppingListEvent {
 
   @override
   String toString() => 'CreateNewList { listId: $listId }';
-
 }
 
 class UpdateList extends ShoppingListEvent {
   final ShoppingListEntity updatedList;
   final String updatedField;
-  final List<ShoppingListEntity> lists;
 
-  const UpdateList(this.updatedList, this.updatedField, this.lists);
+  const UpdateList(this.updatedList, this.updatedField);
 
   @override
   List<Object> get props => [updatedList, updatedField];

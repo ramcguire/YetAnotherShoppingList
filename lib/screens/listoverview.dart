@@ -25,7 +25,6 @@ class ListOverview extends StatelessWidget {
 
   Widget _buildListOverview(
       BuildContext context, ShoppingListEntity list, ListsLoaded state) {
-
     return SizedBox(
       height: 250,
       child: Material(
@@ -95,7 +94,6 @@ class ListOverview extends StatelessWidget {
                                     ],
                                   );
                                 },
-
                               )
                             : Opacity(
                                 opacity: 0.5,
@@ -109,7 +107,6 @@ class ListOverview extends StatelessWidget {
                                         style: TextStyle(fontSize: 24.0)),
                                   ],
                                 ),
-
                               ),
                       ),
                       Expanded(
@@ -229,7 +226,10 @@ class ListOverview extends StatelessWidget {
       child: Icon(Icons.add),
       backgroundColor: Colors.green,
       onPressed: () {
-        showDialog(context: context, child: newListForm(context));
+        //showDialog(context: context, child: newListForm(context));
+        Navigator.of(context).push(MaterialPageRoute(
+          builder: (context) => CreateList(),
+        ));
       },
     );
   }
