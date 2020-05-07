@@ -25,93 +25,77 @@ class ListOverview extends StatelessWidget {
 
   Widget _buildListOverview(
       BuildContext context, ShoppingListEntity list, ListsLoaded state) {
-    return ClipRRect(
-      clipBehavior: Clip.hardEdge,
-      borderRadius: BorderRadius.circular(20),
-      child: SizedBox(
-        height: 250,
-        child: Material(
-          child: Dismissible(
-            key: ValueKey(list),
-            onDismissed: (direction) {
-              BlocProvider.of<ShoppingListBloc>(context)
-                  .add(DeleteList(list, state.lists));
-              Scaffold.of(context).showSnackBar(SnackBar(
-                content: Text('List ${list.title} dismissed'),
-              ));
+
+    return SizedBox(
+      height: 250,
+      child: Material(
+        child: Dismissible(
+          key: ValueKey(list),
+          onDismissed: (direction) {
+            BlocProvider.of<ShoppingListBloc>(context)
+                .add(DeleteList(list, state.lists));
+            Scaffold.of(context).showSnackBar(SnackBar(
+              content: Text('List ${list.title} dismissed'),
+            ));
+          },
+          child: InkWell(
+            onTap: () {
+              print('picked list with id ${list.id}');
+              Navigator.push(context, MaterialPageRoute(builder: (context) {
+                return ListViewer(list.id);
+              }));
             },
-            child: InkWell(
-              onTap: () {
-                print('picked list with id ${list.id}');
-                Navigator.push(context, MaterialPageRoute(builder: (context) {
-                  return ListViewer(list.id);
-                }));
-              },
-              child: Card(
-                elevation: _cardElevation,
-                child: Stack(
-                  //overflow: Overflow.clip,
-                  children: <Widget>[
-                    Text(
-                      list.title,
-                      style: _titleStyle,
-                      overflow: TextOverflow.ellipsis,
-                      textAlign: TextAlign.center,
-                    ),
-                    Container(
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment(0.0, -1.0),
-                          end: Alignment(0.0, -0.35),
-                          // 10% of the width, so there are ten blinds.
-                          colors: [
-                            Colors.black54,
-                            Colors.white
-                          ], // whitish to gray
-                          //tileMode: TileMode.clamp, // repeats the gradient over the canvas
+            child: Card(
+              elevation: _cardElevation,
+              child: Stack(
+                children: <Widget>[
+                  Column(
+                    //overflow: Overflow.clip,
+                    children: <Widget>[
+                      Text(
+                        list.title,
+                        style: _titleStyle,
+                        overflow: TextOverflow.ellipsis,
+                        textAlign: TextAlign.center,
+                      ),
+                      Container(),
+                      Container(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment(0.0, -1.0),
+                            end: Alignment(0.0, 0.0),
+                            colors: [Colors.blue, Colors.black12],
+                          ),
                         ),
                       ),
-                    ),
-                    Container(
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment(0.0, -1.0),
-                          end: Alignment(0.0, -0.35),
-                          // 10% of the width, so there are ten blinds.
-                          colors: [
-                            Colors.black54,
-                            Colors.white
-                          ], // whitish to gray
-                          //tileMode: TileMode.clamp, // repeats the gradient over the canvas
+                      //Spacer(),
+                      ConstrainedBox(
+                        constraints: BoxConstraints(
+                          maxHeight: 150,
                         ),
-                      ),
-                    ),
-                    ListView(
-                      physics: NeverScrollableScrollPhysics(),
-                      children: <Widget>[
-                        list.collection.length != 0
-                            ? ClipRect(
-                                clipBehavior: Clip.hardEdge,
-                                child: Wrap(
-                                  children: list.collection.map((item) {
-                                    return Row(
-                                      crossAxisAlignment:
-                                          CrossAxisAlignment.center,
-                                      children: <Widget>[
-                                        Icon(item.complete
-                                            ? Icons.check_box
-                                            : Icons.check_box_outline_blank),
-                                        Text('\t\t\t\t'),
-                                        Text(
-                                          item.title,
-                                          style: item.complete
-                                              ? completedItem
-                                              : defaultItem,
-                                        ),
-                                      ],
-                                    );
-                                  }).toList(),
-                                ),
+                        child: list.collection.length != 0
+                            ? ListView.builder(
+                                physics: NeverScrollableScrollPhysics(),
+                                itemCount: list.collection.length,
+                                itemBuilder: (context, idx) {
+                                  return Row(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.center,
+                                    children: <Widget>[
+                                      Icon(list.collection[idx].complete
+                                          ? Icons.check_box
+                                          : Icons.check_box_outline_blank),
+                                      Text('\t\t\t\t'),
+                                      Text(
+                                        list.collection[idx].title,
+                                        style: list.collection[idx].complete
+                                            ? _completeItem
+                                            : _itemStyle,
+                                      ),
+                                    ],
+                                  );
+                                },
+
                               )
                             : Opacity(
                                 opacity: 0.5,
@@ -125,11 +109,25 @@ class ListOverview extends StatelessWidget {
                                         style: TextStyle(fontSize: 24.0)),
                                   ],
                                 ),
-                              )
-                      ],
-                    ),
-                  ],
-                ),
+
+                              ),
+                      ),
+                      Expanded(
+                          child: Stack(
+                        children: <Widget>[
+                          Container(
+                            foregroundDecoration: BoxDecoration(
+                                gradient: LinearGradient(
+                              begin: Alignment.bottomCenter,
+                              end: Alignment.topCenter,
+                              colors: [Colors.black, Colors.white],
+                            )),
+                          ),
+                        ],
+                      )),
+                    ],
+                  )
+                ],
               ),
             ),
           ),
@@ -138,40 +136,46 @@ class ListOverview extends StatelessWidget {
     );
   }
 
-  String multiLineString(ShoppingListEntity list) {
-    StringBuffer sb = StringBuffer();
-    list.collection.forEach((item) {
-      sb.write(String.fromCharCode(0x2022) + '\t' + item.title + '\n');
-    });
-    return sb.toString();
-  }
-
   Widget _buildListCards(BuildContext context, ListsLoaded state) {
     List<ShoppingListEntity> lists = state.lists;
-    return CustomScrollView(
-      slivers: <Widget>[
-        SliverAppBar(
-          title: Text('ListOverview'),
-          actions: <Widget>[
-            IconButton(
-              icon: Icon(Icons.exit_to_app),
-              onPressed: () {
-                BlocProvider.of<AuthenticationBloc>(context).add(
-                  LoggedOut(),
-                );
-              },
+    return state.lists.length == 0
+        ? Opacity(
+            opacity: 0.5,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: <Widget>[
+                Icon(Icons.insert_comment, size: 42),
+                Divider(),
+                Text('No lists found, create one now',
+                    style: TextStyle(fontSize: 24.0)),
+              ],
             ),
-          ],
-        ),
-        SliverList(
-          delegate: SliverChildBuilderDelegate(
-            (context, idx) =>
-                _buildListOverview(context, state.lists[idx], state),
-            childCount: state.lists.length,
-          ),
-        )
-      ],
-    );
+          )
+        : CustomScrollView(
+            slivers: <Widget>[
+              SliverAppBar(
+                title: Text('ListOverview'),
+                actions: <Widget>[
+                  IconButton(
+                    icon: Icon(Icons.exit_to_app),
+                    onPressed: () {
+                      BlocProvider.of<AuthenticationBloc>(context).add(
+                        LoggedOut(),
+                      );
+                    },
+                  ),
+                ],
+              ),
+              SliverList(
+                delegate: SliverChildBuilderDelegate(
+                  (context, idx) =>
+                      _buildListOverview(context, state.lists[idx], state),
+                  childCount: state.lists.length,
+                ),
+              )
+            ],
+          );
   }
 
   void createNewList(BuildContext context, String listTitle) {

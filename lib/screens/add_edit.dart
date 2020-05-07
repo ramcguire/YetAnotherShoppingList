@@ -75,7 +75,7 @@ class AddEditScreen extends StatelessWidget {
               padding: EdgeInsets.all(16.0),
               child: Form(
                 key: _formKey,
-                child: Column(
+                child: ListView(
                   children: <Widget>[
                     TextFormField(
                       initialValue: item.title,

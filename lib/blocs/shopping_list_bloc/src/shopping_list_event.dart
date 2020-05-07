@@ -10,16 +10,30 @@ abstract class ShoppingListEvent extends Equatable {
 
 class LoadLists extends ShoppingListEvent {}
 
-class AddList extends ShoppingListEvent {
-  final ShoppingListEntity list;
+class CreateNewList extends ShoppingListEvent {
+  final String newListTitle;
 
-  const AddList(this.list);
-
-  @override
-  List<Object> get props => [list];
+  const CreateNewList(this.newListTitle);
 
   @override
-  String toString() => 'AddList { list: $list }';
+  List<Object> get props => [newListTitle];
+
+  @override
+  String toString() => 'CreateNewList { newListTitle: $newListTitle }';
+}
+
+class ViewList extends ShoppingListEvent {
+  final List<ShoppingListEntity> lists;
+  final String listId;
+
+  const ViewList(this.lists, this.listId);
+
+  @override
+  List<Object> get props => [lists, listId];
+
+  @override
+  String toString() => 'CreateNewList { listId: $listId }';
+
 }
 
 class UpdateList extends ShoppingListEvent {

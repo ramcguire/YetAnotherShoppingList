@@ -20,28 +20,30 @@ class ShareScreen extends StatelessWidget {
         trailing: Icon(Icons.lock_outline),
       );
     }
-    // only owner can remove shared
-    if (currentUser == list.owner) {
-      return Slidable(
-        actionPane: SlidableDrawerActionPane(),
-        actionExtentRatio: 0.25,
-        actions: <Widget>[
-          IconSlideAction(
-            icon: Icons.clear,
-            caption: 'Remove',
-            color: Colors.red,
-            onTap: () {
-              list.authorized.remove(user);
-              BlocProvider.of<ShoppingListBloc>(context).add(UpdateList(list, "data", state.lists));
-            },
-          )
-        ],
-        child: ListTile(
-          title: Text(user),
-          trailing: Icon(Icons.remove),
-        ),
-      );
-    }
+    return Slidable(
+      actionPane: SlidableDrawerActionPane(),
+      actionExtentRatio: 0.2,
+      actions: <Widget>[
+        IconSlideAction(
+          icon: Icons.clear,
+          caption: 'Remove',
+          color: Colors.red,
+          onTap: () {
+            list.authorized.remove(user);
+            BlocProvider.of<ShoppingListBloc>(context).add(UpdateList(list, "data"));
+          },
+        )
+      ],
+      child: ListTile(
+        title: Text(user),
+        trailing: Icon(Icons.remove),
+      ),
+    );
+//    // only owner can remove shared
+//    if (currentUser == list.owner) {
+//
+//    }
+
     return ListTile(
       title: Text(user),
     );

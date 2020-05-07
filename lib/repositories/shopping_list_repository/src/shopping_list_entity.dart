@@ -21,7 +21,6 @@ class ShoppingListEntity {
         reference = snapshot.reference,
         creationDate = snapshot.data['created_at'].toDate(),
         collection = snapshot.data['data'].map<ShoppingListItem>((entries) {
-          print('in shoppinglist contructor for title ${snapshot['title']}');
           return ShoppingListItem.fromMap(entries);
         }).toList(),
         authorized = snapshot.data['authorized'].map<String>((user) {
@@ -36,16 +35,31 @@ class ShoppingListEntity {
         creationDate = DateTime.now(),
         id = null;
 
-  ShoppingListEntity copyWith(String title) {
+  ShoppingListEntity copyWith(
+      {String title,
+      String id,
+      String owner,
+      List<ShoppingListItem> collection,
+      DocumentReference reference,
+      List<String> authorized,
+      DateTime creationDate}) {
     return ShoppingListEntity(
       title ?? this.title,
-      this.id,
-      this.owner,
-      this.collection,
-      this.reference,
-      this.authorized,
-      this.creationDate,
+      id ?? this.id,
+      owner ?? this.owner,
+      collection ?? this.collection,
+      reference ?? this.reference,
+      authorized ?? this.authorized,
+      creationDate ?? this.creationDate,
     );
+  }
+
+  // updates matching ShoppingListItem in place, then updates repository
+  ShoppingListEntity updateInPlace(ShoppingListItem item) {
+    List<ShoppingListItem> currentCollection = this.collection;
+    int idx = currentCollection.indexWhere((i) => i.uid == item.uid);
+    currentCollection[idx] = item;
+    return this.copyWith(collection: currentCollection);
   }
 
   Map toJson() => {
@@ -94,6 +108,16 @@ class ShoppingListItem {
         description = '',
         complete = false,
         uid = Uuid().v4();
+
+  ShoppingListItem copyWith(
+      {String uid, String title, String description, bool complete}) {
+    return ShoppingListItem(
+      title ?? this.title,
+      description ?? this.description,
+      complete ?? this.complete,
+      uid ?? this.uid,
+    );
+  }
 
   @override
   int get hashCode =>

@@ -27,18 +27,6 @@ Widget buildDrawer(BuildContext context) {
                 );
               }),
           ListTile(
-            title: Text('Item 1'),
-            onTap: () {
-              Navigator.pop(context);
-            },
-          ),
-          ListTile(
-            title: Text('Item 2'),
-            onTap: () {
-              Navigator.pop(context);
-            },
-          ),
-          ListTile(
             title: Text('Sign out'),
             onTap: () async {
               Navigator.pop(context);
