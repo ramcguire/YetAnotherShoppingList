@@ -6,7 +6,7 @@ import 'package:yetanothershoppinglist/repositories/repositories.dart';
 import 'package:yetanothershoppinglist/screens/screens.dart';
 import 'package:yetanothershoppinglist/widgets/drawer.dart';
 
-final double _cardElevation = 10.0; // for ease of "tweaking", remove later
+final double _cardElevation = 10.0;
 
 class ListOverview extends StatelessWidget {
   final TextStyle completedItem =
@@ -226,10 +226,10 @@ class ListOverview extends StatelessWidget {
       child: Icon(Icons.add),
       backgroundColor: Colors.green,
       onPressed: () {
-        //showDialog(context: context, child: newListForm(context));
-        Navigator.of(context).push(MaterialPageRoute(
-          builder: (context) => CreateList(),
-        ));
+        showDialog(context: context, child: newListForm(context));
+//        Navigator.of(context).push(MaterialPageRoute(
+//          builder: (context) => CreateList(),
+//        ));
       },
     );
   }

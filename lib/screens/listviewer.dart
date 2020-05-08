@@ -5,7 +5,6 @@ import 'package:yetanothershoppinglist/repositories/repositories.dart';
 import 'package:yetanothershoppinglist/screens/screens.dart';
 import 'package:yetanothershoppinglist/widgets/widgets.dart';
 
-
 class ListViewer extends StatefulWidget {
   final String listId;
 
@@ -36,7 +35,6 @@ class _ListViewerState extends State<ListViewer> {
   }
 
   Widget mainBody(BuildContext context, ShoppingListEntity selectedList) {
-
     return Scaffold(
         floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
         floatingActionButton: FloatingActionButton(
@@ -53,7 +51,6 @@ class _ListViewerState extends State<ListViewer> {
                   context: context,
                   barrierDismissible: false,
                   child: AddUser(selectedList));
-
             }
           },
         ),
@@ -98,22 +95,30 @@ class _ListViewerState extends State<ListViewer> {
           ],
         )));
   }
+
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<ShoppingListBloc, ShoppingListState>(
-      builder: (context, state) {
+    return BlocConsumer<ShoppingListBloc, ShoppingListState>(
+      listener: (context, state) {
         if (state is ListsLoaded) {
           List<ShoppingListEntity> lists = state.lists;
           int idx = lists.indexWhere((i) => i.id == this.widget.listId);
           if (idx == -1) {
-            WidgetsBinding.instance.addPostFrameCallback((_) {
-              Navigator.of(context).popUntil((route) => route.isFirst);
-            });
-            return Scaffold(
-              body: Loading(),
-            );
+            Navigator.of(context).popUntil((route) => route.isFirst);
           }
-          return mainBody(context, lists[idx]);
+        }
+      },
+      buildWhen: (previousState, state) {
+        return (state as ListsLoaded)
+                .lists
+                .indexWhere((i) => i.id == this.widget.listId) !=
+            -1;
+      },
+      builder: (context, state) {
+        if (state is ListsLoaded) {
+          List<ShoppingListEntity> lists = state.lists;
+          int idx = lists.indexWhere((i) => i.id == this.widget.listId);
+          return idx != -1 ? mainBody(context, lists[idx]) : Container();
         }
         return Container();
       },
