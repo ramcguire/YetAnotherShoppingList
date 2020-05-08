@@ -77,21 +77,31 @@ class ListOverview extends StatelessWidget {
                                 physics: NeverScrollableScrollPhysics(),
                                 itemCount: list.collection.length,
                                 itemBuilder: (context, idx) {
-                                  return Row(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.center,
-                                    children: <Widget>[
-                                      Icon(list.collection[idx].complete
-                                          ? Icons.check_box
-                                          : Icons.check_box_outline_blank),
-                                      Text('\t\t\t\t'),
-                                      Text(
-                                        list.collection[idx].title,
-                                        style: list.collection[idx].complete
-                                            ? _completeItem
-                                            : _itemStyle,
-                                      ),
-                                    ],
+                                  return Padding(
+                                    padding: const EdgeInsets.all(1.0),
+                                    child: Row(
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.center,
+                                      children: <Widget>[
+                                        Flexible(
+                                          flex: 16,
+                                          child: Icon(list
+                                                  .collection[idx].complete
+                                              ? Icons.check_box
+                                              : Icons.check_box_outline_blank),
+                                        ),
+                                        Spacer(),
+                                        Flexible(
+                                          flex: 16,
+                                          child: Text(
+                                            list.collection[idx].title,
+                                            style: list.collection[idx].complete
+                                                ? _completeItem
+                                                : _itemStyle,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
                                   );
                                 },
                               )
