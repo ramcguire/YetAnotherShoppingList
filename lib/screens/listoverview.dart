@@ -237,9 +237,6 @@ class ListOverview extends StatelessWidget {
       backgroundColor: Colors.green,
       onPressed: () {
         showDialog(context: context, child: newListForm(context));
-//        Navigator.of(context).push(MaterialPageRoute(
-//          builder: (context) => CreateList(),
-//        ));
       },
     );
   }

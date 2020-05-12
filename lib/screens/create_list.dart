@@ -18,10 +18,6 @@ class CreateList extends StatelessWidget {
             ],
           ),
           Divider(),
-//          Flexible(
-//            flex: 2,
-//            //child: Row,
-//          ),
           Flexible(
             flex: 5,
             child: Row(
