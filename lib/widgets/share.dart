@@ -39,14 +39,6 @@ class ShareScreen extends StatelessWidget {
         trailing: Icon(Icons.remove),
       ),
     );
-//    // only owner can remove shared
-//    if (currentUser == list.owner) {
-//
-//    }
-
-    return ListTile(
-      title: Text(user),
-    );
   }
 
 
