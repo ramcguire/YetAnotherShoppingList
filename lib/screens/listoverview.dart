@@ -49,7 +49,6 @@ class ListOverview extends StatelessWidget {
               child: Stack(
                 children: <Widget>[
                   Column(
-                    //overflow: Overflow.clip,
                     children: <Widget>[
                       Text(
                         list.title,
@@ -94,7 +93,9 @@ class ListOverview extends StatelessWidget {
                                         Flexible(
                                           flex: 16,
                                           child: Text(
+
                                             list.collection[idx].title,
+                                            overflow: TextOverflow.ellipsis,
                                             style: list.collection[idx].complete
                                                 ? _completeItem
                                                 : _itemStyle,
